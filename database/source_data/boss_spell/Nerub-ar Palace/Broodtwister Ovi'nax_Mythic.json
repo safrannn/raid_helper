@@ -1,0 +1,68 @@
+[
+    {
+        "name": "Fixate",
+        "id": 442250,
+        "icon": "www.wowhead.com/icon=841383",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Vicious Bite",
+        "id": 438807,
+        "icon": "www.wowhead.com/icon=2027897",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Infest",
+        "id": 442257,
+        "icon": "www.wowhead.com/icon=5659379",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Mutation: Ravenous",
+        "id": 446690,
+        "icon": "www.wowhead.com/icon=134895",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Sanguine Overflow",
+        "id": 442799,
+        "icon": "www.wowhead.com/icon=1391774",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Sticky Web",
+        "id": 446344,
+        "icon": "www.wowhead.com/icon=5764928",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Ingest Black Blood",
+        "id": 442432,
+        "icon": "www.wowhead.com/icon=5688871",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Volatile Concoction",
+        "id": 443003,
+        "icon": "www.wowhead.com/icon=136227",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Mutation: Accelerated",
+        "id": 442263,
+        "icon": "www.wowhead.com/icon=5688856",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Poison Burst",
+        "id": 446700,
+        "icon": "www.wowhead.com/icon=5764923",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Experimental Dosage",
+        "id": 442526,
+        "icon": "www.wowhead.com/icon=237514",
+        "spell_type": "Default"
+    }
+]

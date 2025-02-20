@@ -1,0 +1,50 @@
+[
+    {
+        "name": "Assassination",
+        "id": 440650,
+        "icon": "www.wowhead.com/icon=132323",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Reaper",
+        "id": 436749,
+        "icon": "www.wowhead.com/icon=136177",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Void Shredders",
+        "id": 440377,
+        "icon": "www.wowhead.com/icon=1786404",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Death Masks",
+        "id": 448364,
+        "icon": "www.wowhead.com/icon=458735",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Starless Night",
+        "id": 435405,
+        "icon": "www.wowhead.com/icon=136223",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Twilight Massacre",
+        "id": 438245,
+        "icon": "www.wowhead.com/icon=236222",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Nexus Daggers",
+        "id": 439576,
+        "icon": "www.wowhead.com/icon=236274",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Nether Rift",
+        "id": 437620,
+        "icon": "www.wowhead.com/icon=1386548",
+        "spell_type": "Default"
+    }
+]

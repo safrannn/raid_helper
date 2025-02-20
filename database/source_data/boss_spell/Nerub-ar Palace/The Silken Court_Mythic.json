@@ -1,0 +1,164 @@
+[
+    {
+        "name": "Spike Eruption",
+        "id": 443068,
+        "icon": "www.wowhead.com/icon=574790",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Call of the Swarm",
+        "id": 438801,
+        "icon": "www.wowhead.com/icon=5520459",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Strands of Reality",
+        "id": 441782,
+        "icon": "www.wowhead.com/icon=1386551",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Harden Carapace",
+        "id": 438706,
+        "icon": "www.wowhead.com/icon=134882",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Void Excursion",
+        "id": 451510,
+        "icon": "www.wowhead.com/icon=1022950",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Stinging Swarm",
+        "id": 438677,
+        "icon": "www.wowhead.com/icon=538518",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Entangled",
+        "id": 440179,
+        "icon": "www.wowhead.com/icon=5764927",
+        "spell_type": "SpecialMechanics"
+    },
+    {
+        "name": "Whispers of The Silken Court",
+        "id": 455796,
+        "icon": "www.wowhead.com/icon=5383206",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Piercing Strike",
+        "id": 438218,
+        "icon": "www.wowhead.com/icon=132271",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Entropic Desolation",
+        "id": 450129,
+        "icon": "www.wowhead.com/icon=4914669",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Web Vortex",
+        "id": 441626,
+        "icon": "www.wowhead.com/icon=5764929",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Void Step",
+        "id": 450483,
+        "icon": "www.wowhead.com/icon=1022950",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Shatter Existence",
+        "id": 450980,
+        "icon": "www.wowhead.com/icon=4914671",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Bursting Shot",
+        "id": 224729,
+        "icon": "www.wowhead.com/icon=1376038",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Burrow",
+        "id": 456174,
+        "icon": "www.wowhead.com/icon=5260435",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Impaling Eruption",
+        "id": 440504,
+        "icon": "www.wowhead.com/icon=1418495",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Void Bolt",
+        "id": 441772,
+        "icon": "www.wowhead.com/icon=4914668",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Spike Storm",
+        "id": 451277,
+        "icon": "www.wowhead.com/icon=2058007",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Shell Shatterer",
+        "id": 438794,
+        "icon": "www.wowhead.com/icon=461141",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Web Bomb",
+        "id": 439838,
+        "icon": "www.wowhead.com/icon=5764932",
+        "spell_type": "SpecialMechanics"
+    },
+    {
+        "name": "Reckless Charge",
+        "id": 440246,
+        "icon": "www.wowhead.com/icon=304501",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Scarab Fixation",
+        "id": 438749,
+        "icon": "www.wowhead.com/icon=841382",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Unleashed Swarm",
+        "id": 442994,
+        "icon": "www.wowhead.com/icon=136045",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Skittering Leap",
+        "id": 450045,
+        "icon": "www.wowhead.com/icon=236171",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Poison Bolt",
+        "id": 438200,
+        "icon": "www.wowhead.com/icon=136016",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Venomous Rain",
+        "id": 438343,
+        "icon": "www.wowhead.com/icon=132100",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Burrowed Eruption",
+        "id": 441791,
+        "icon": "www.wowhead.com/icon=5260435",
+        "spell_type": "Default"
+    }
+]

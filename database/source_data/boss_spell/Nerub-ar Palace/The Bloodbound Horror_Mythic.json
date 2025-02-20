@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Manifest Horror",
+        "id": 445174,
+        "icon": "www.wowhead.com/icon=1378284",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Crimson Rain",
+        "id": 443203,
+        "icon": "www.wowhead.com/icon=136168",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Grasp From Beyond",
+        "id": 443031,
+        "icon": "www.wowhead.com/icon=537022",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Invoke Terrors",
+        "id": 444497,
+        "icon": "www.wowhead.com/icon=3012070",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Spectral Slam",
+        "id": 445016,
+        "icon": "www.wowhead.com/icon=254105",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Goresplatter",
+        "id": 444363,
+        "icon": "www.wowhead.com/icon=236302",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Gruesome Disgorge",
+        "id": 444363,
+        "icon": "www.wowhead.com/icon=236302",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Spewing Hemorrhage",
+        "id": 445936,
+        "icon": "www.wowhead.com/icon=236296",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Bloodcurdle",
+        "id": 452237,
+        "icon": "www.wowhead.com/icon=1029738",
+        "spell_type": "Default"
+    }
+]

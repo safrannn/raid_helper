@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Web Reave",
+        "id": 439795,
+        "icon": "www.wowhead.com/icon=5764933",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Erosive Spray",
+        "id": 439811,
+        "icon": "www.wowhead.com/icon=5764922",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Savage Assault",
+        "id": 444687,
+        "icon": "www.wowhead.com/icon=1016354",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Enveloping Webs",
+        "id": 454989,
+        "icon": "www.wowhead.com/icon=5764927",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Infested Spawn",
+        "id": 455373,
+        "icon": "www.wowhead.com/icon=2027948",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Spinneret's Strands",
+        "id": 439784,
+        "icon": "www.wowhead.com/icon=5764926",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Rolling Acid",
+        "id": 439789,
+        "icon": "www.wowhead.com/icon=5764925",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Infested Bite",
+        "id": 455287,
+        "icon": "www.wowhead.com/icon=2027948",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Caustic Hail",
+        "id": 456762,
+        "icon": "www.wowhead.com/icon=132014",
+        "spell_type": "Default"
+    }
+]

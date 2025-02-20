@@ -1,0 +1,122 @@
+[
+    {
+        "name": "Venom Nova",
+        "id": 437417,
+        "icon": "www.wowhead.com/icon=136030",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Null Detonation",
+        "id": 445021,
+        "icon": "www.wowhead.com/icon=425958",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Oust",
+        "id": 448147,
+        "icon": "www.wowhead.com/icon=5493525",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Queen's Summons",
+        "id": 444829,
+        "icon": "www.wowhead.com/icon=5725616",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Royal Condemnation",
+        "id": 438976,
+        "icon": "www.wowhead.com/icon=330604",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Liquefy",
+        "id": 440899,
+        "icon": "www.wowhead.com/icon=132099",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Wrest",
+        "id": 447411,
+        "icon": "www.wowhead.com/icon=1603014",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Aphotic Communion",
+        "id": 449986,
+        "icon": "www.wowhead.com/icon=537079",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Predation",
+        "id": 447076,
+        "icon": "www.wowhead.com/icon=4549280",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Gorge",
+        "id": 443336,
+        "icon": "www.wowhead.com/icon=3086045",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Frothing Gluttony",
+        "id": 445422,
+        "icon": "www.wowhead.com/icon=2120320",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Abyssal Infusion",
+        "id": 443888,
+        "icon": "www.wowhead.com/icon=4914669",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Web Blades",
+        "id": 439299,
+        "icon": "www.wowhead.com/icon=5764930",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Feast",
+        "id": 437093,
+        "icon": "www.wowhead.com/icon=237395",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Acid Bolt",
+        "id": 448660,
+        "icon": "www.wowhead.com/icon=135797",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Expulsion Beam",
+        "id": 451600,
+        "icon": "www.wowhead.com/icon=4913233",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Paralyzing Venom",
+        "id": 447456,
+        "icon": "www.wowhead.com/icon=236271",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Silken Tomb",
+        "id": 439814,
+        "icon": "www.wowhead.com/icon=5764927",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Reactive Toxin",
+        "id": 437592,
+        "icon": "www.wowhead.com/icon=2115303",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Infest",
+        "id": 443325,
+        "icon": "www.wowhead.com/icon=3033716",
+        "spell_type": "Default"
+    }
+]

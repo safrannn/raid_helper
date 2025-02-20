@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Rain of Arrows",
+        "id": 439559,
+        "icon": "www.wowhead.com/icon=135131",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Cosmic Simulacrum",
+        "id": 458272,
+        "icon": "www.wowhead.com/icon=4914666",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Cosmic Residue",
+        "id": 459782,
+        "icon": "www.wowhead.com/icon=1500911",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Shattering Sweep",
+        "id": 456420,
+        "icon": "www.wowhead.com/icon=135358",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Cosmic Shards",
+        "id": 459273,
+        "icon": "www.wowhead.com/icon=4549119",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Phase Lunge",
+        "id": 435403,
+        "icon": "www.wowhead.com/icon=5246572",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Phase Blades",
+        "id": 433475,
+        "icon": "www.wowhead.com/icon=4667427",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Expose",
+        "id": 432965,
+        "icon": "www.wowhead.com/icon=1373911",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Decimate",
+        "id": 442428,
+        "icon": "www.wowhead.com/icon=5372152",
+        "spell_type": "Default"
+    }
+]

@@ -1,0 +1,80 @@
+[
+    {
+        "name": "Digestive Acid",
+        "id": 435138,
+        "icon": "www.wowhead.com/icon=132100",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Carnivorous Contest",
+        "id": 434803,
+        "icon": "www.wowhead.com/icon=132127",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Chittering Swarm",
+        "id": 445052,
+        "icon": "www.wowhead.com/icon=538518",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Disembowel",
+        "id": 439037,
+        "icon": "www.wowhead.com/icon=132155",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Venomous Lash",
+        "id": 435136,
+        "icon": "www.wowhead.com/icon=132274",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Stalker's Webbing",
+        "id": 441452,
+        "icon": "www.wowhead.com/icon=136007",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Hungering Bellows",
+        "id": 438012,
+        "icon": "www.wowhead.com/icon=1058933",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Phase Transition",
+        "id": 441425,
+        "icon": "www.wowhead.com/icon=5779390",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Brutal Crush",
+        "id": 434697,
+        "icon": "www.wowhead.com/icon=1508495",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Swallowing Darkness",
+        "id": 443842,
+        "icon": "www.wowhead.com/icon=4067372",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Hulking Crash",
+        "id": 435341,
+        "icon": "www.wowhead.com/icon=136025",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Juggernaut Charge",
+        "id": 436200,
+        "icon": "www.wowhead.com/icon=607865",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Bioactive Spines",
+        "id": 455870,
+        "icon": "www.wowhead.com/icon=5764919",
+        "spell_type": "Default"
+    }
+]
