@@ -1,5 +1,4 @@
 use crate::{class::*, spell::*, time::*};
-use std::collections::{HashMap, HashSet};
 
 pub struct Player {
     // Player name.
@@ -18,41 +17,57 @@ pub struct Boss {
     icon: String,
 }
 
-pub enum TimelineEntrySpell {
-    Player(PlayerSpell),
-    Boss(BossSpell),
-}
-
-// Each entry in the timeline graph and boss map.
-pub enum TimelineEntryKind {
-    // cast_start_min, cast_start_sec, cast_time.
-    SpellCasts {
-        spell_id: usize,
-        spell_cast: SpellCast,
-    },
-    // Position on the boss map.
-    MapPosition {
-        x: Position,
-        y: Position,
-    },
-}
-
-pub enum TimelineEntryEntity {
-    Player(Player),
-    Boss(Boss),
-}
-pub struct Timeline {
-    fight_id: usize,
-
-    // <EntryID, TimelineEntryKind>
-    entries: HashMap<usize, TimelineEntryKind>,
-}
-
-// ==================Boss Map====================
 // Position on the boss map
 struct Position {
     // X position on the boss map. // todo!: consider replace it with gsap compatible data
     x_pos: usize,
     // Y position on the boss map. // todo!: consider replace it with gsap compatible data
     y_pos: usize,
+}
+
+// Entry in each row in the timeline. Used for both timeline graph and boss map.
+pub struct TimelineEntry {
+    pub boss_name: String,
+
+    pub player_id: Option<usize>,
+
+    pub time_stamp: Time,
+
+    // Option<(spell_id, cast_duration)>.
+    pub cast: Option<(usize, f32)>,
+
+    // position in the boss map.
+    pub position: Option<Position>,
+}
+
+impl TimelineEntry {
+    pub fn new_cast(
+        boss_name: String,
+        player_id: Option<usize>,
+        time_stamp: Time,
+        spell_id: usize,
+        cast_duration: f32,
+    ) -> Self {
+        TimelineEntry {
+            boss_name,
+            player_id,
+            time_stamp,
+            cast: Some((spell_id, cast_duration)),
+            position: None,
+        }
+    }
+    pub fn new_position(
+        boss_name: String,
+        player_id: Option<usize>,
+        time_stamp: Time,
+        position: Position,
+    ) -> Self {
+        TimelineEntry {
+            boss_name,
+            player_id,
+            time_stamp,
+            cast: None,
+            position: Some(position),
+        }
+    }
 }

@@ -1,0 +1,124 @@
+Data needed:
+    Boss
+        Boss spell name + spell icon | from wowhead
+        Boss spell begin cast + cast | from warcraft logs
+        ???: Mob Damage
+    Player
+        Player spell name + spell icon + spell cooldown + spell cast time | from wowhead
+        Class | from ???
+
+===================
+UI
+    Timeline entry Buttons
+        Name side buttons
+            'File': Import MRT string
+            'MapIcon': Add icon in boss map
+            '-': Delete entry
+            '+': Add player spell
+            [DoubleClick]: Rename
+        Row buttons
+            '+': Add new entry
+    Select Boss
+    Boss Spell Filter
+        Defense, SingleTargetDamage, RaidDamage, SpecialMechanics
+    Player Spell Filter
+        PersonalDefensive, RaidDefense, SingleTargetHeal, RaidHeal, BurstDamage, Movement
+    Boss Map
+        Icon List
+        '+': Add new location
+
+==========================================
+Clap commands
+    ======First Draft=====================
+    list-raid
+    list-boss
+        --all
+        --raid-name
+    add-boss
+        --name
+
+    import-boss-spells 
+        --boss-name
+    import-boss-timeline 
+        --boss-name
+    import-player-spells 
+        --all
+
+    =======Essential Features Later=======
+    add-fight
+        --boss-name
+        --fight-name (optional)
+    import-player-timeline
+        --all
+    import-player-spells
+        --classspec
+    add-player-timeline-entry 
+        --fight-id
+        --player-name 
+        --player-classspec
+    add-player-timeline-spell 
+        --boss-name 
+        --player-name
+        --new-player-spell-id
+        --new-player-spell-time (min, sec)
+    remove-player-timeline-spell 
+        --boss-name 
+        --player-name 
+        --player-spell-id
+        --player-spell-time (min, sec)
+    update-player-timeline-name 
+        --fight-id
+        --old-player-name
+        --new-player-name
+    update-player-timeline-spell-id
+        --boss-name 
+        --player-name 
+        --player-spell-time (min, sec)
+        --old-player-spell-id
+        --new-player-spell-id
+    update-player-timeline-spell-time
+        --boss-name 
+        --player-name 
+        --player-spell-id 
+        --old-player-spell-time (min, sec)
+        --new-player-spell-time (min, sec)
+    add-player-timeline-position 
+        --boss-name 
+        --player-name
+        --new-player-position (x,y)
+        --new-player-position-time (min, sec)
+    remove-player-timeline-position 
+        --boss-name 
+        --player-name 
+        --old-player-position (x,y)
+        --old-player-position-time (min, sec)
+    update-player-timeline-position 
+        --boss-name 
+        --player-name 
+        --old-player-position-time (min, sec)
+        --old-player-position (x,y)
+        --new-player-position (x,y)
+    update-boss-timeline-spell
+        --boss-name
+        --old-boss-spell-id 
+        --old-boss-spell-time (min, sec)
+        --new-boss-spell-time (min, sec)
+    remove-boss-timeline-spell 
+        --boss-name 
+        --old-boss-spell-id
+        --old-boss-spell-time (min, sec)
+    get-player-spell-types
+    get-boss-spell-types
+
+    =======Nice to Have===================
+    import-player-timeline 
+        --file
+    import-boss-timeline 
+        --file
+    export-player-timeline
+
+    =======Maybe in the Future============
+    add-player-custom-spell
+    add-boss-custom-spell
+
+==========================================

@@ -17,6 +17,13 @@ impl Time {
             return Time(minutes, seconds);
         }
     }
+
+    pub fn get_min(&self) -> usize {
+        return self.0;
+    }
+    pub fn get_sec(&self) -> f32 {
+        return self.1;
+    }
 }
 
 impl From<&str> for Time {

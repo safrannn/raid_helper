@@ -7,22 +7,6 @@ use rusqlite::{
 
 // ==================Spell Commons====================
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct SpellCast {
-    // Start casting time.
-    cast_start: Time,
-    // Time taken for casting in seconds.
-    cast_time: f32,
-}
-
-impl SpellCast {
-    pub fn new(cast_start: Time, cast_time: f32) -> Self {
-        SpellCast {
-            cast_start,
-            cast_time,
-        }
-    }
-}
 // sql table: key:id, name.......
 pub struct PlayerSpell {
     // Spell name.
@@ -36,9 +20,19 @@ pub struct PlayerSpell {
     // Spell cool down in seconds.
     cool_down: f32,
     // Cast time in seconds
-    cast_time: f32,
+    cast_duration: f32,
     // Spell type note for spell filter.
     spell_type: PlayerSpellType,
+}
+
+pub enum PlayerSpellType {
+    Default,
+    BurstDamage,
+    Movement,
+    PersonalDefense,
+    RaidDefense,
+    SingleTargetHeal,
+    RaidHeal,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -52,6 +46,7 @@ pub struct BossSpell {
     // Spell type note for spell filter.
     pub spell_type: BossSpellType,
 }
+
 impl BossSpell {
     pub fn default(name: String) -> Self {
         BossSpell {
@@ -61,15 +56,6 @@ impl BossSpell {
             spell_type: BossSpellType::Default,
         }
     }
-}
-pub enum PlayerSpellType {
-    Default,
-    BurstDamage,
-    Movement,
-    PersonalDefense,
-    RaidDefense,
-    SingleTargetHeal,
-    RaidHeal,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

@@ -41,11 +41,8 @@ pub struct Boss {
 }
 
 impl Boss {
-    pub fn new(boss_name: String, boss_icon: String) -> Self {
-        Boss {
-            name: boss_name,
-            icon: boss_icon,
-        }
+    pub fn new(name: String, icon: String) -> Self {
+        Boss { name, icon }
     }
 }
 
@@ -53,18 +50,12 @@ impl Boss {
 pub struct Raid {
     // Name of the raid.
     name: String,
-    // Bosses of the raid
-    boss: Vec<Boss>,
+    // Patch of the raid.
+    patch: String,
 }
 
 impl Raid {
-    pub fn new(name: String) -> Self {
-        Raid {
-            name,
-            boss: Vec::new(),
-        }
-    }
-    pub fn add_boss(&mut self, boss: Boss) {
-        self.boss.push(boss);
+    pub fn new(name: String, patch: String) -> Self {
+        Raid { name, patch }
     }
 }

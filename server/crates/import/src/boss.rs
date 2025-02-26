@@ -1,20 +1,21 @@
 use log::*;
 use rusqlite::{params, Connection, Result};
 use std::{
-    collections::{HashMap, HashSet},
     fs::*,
     io::Read,
     path::{Path, PathBuf},
 };
 
-use crate::utils::*;
-use types::{class::*, spell::*, time::*};
+use types::{
+    spell::*,
+    time::*,
+    timeline::TimelineEntry,
+};
+use utils::*;
 
-// ==================Import Bosss Timeline====================
 // import database/source_data/boss_timeline.csv into sqlite
 pub fn import_boss_timeline() {
     // Import csv file downloaded from warcraftlogs.com
-    let boss_list_by_raid = get_boss_list_by_raid();
     let boss_timeline_path = "/boss_timeline";
     let mut source_boss_timeline = SOURCE_DATA.to_string();
     source_boss_timeline.push_str(boss_timeline_path);
@@ -29,7 +30,7 @@ pub fn import_boss_timeline() {
                     .file_name()
                     .and_then(|s| s.to_str())
                     .unwrap_or_default();
-                if if_raid_exist(&boss_list_by_raid, raid_name_found) {
+                if if_raid_exist(raid_name_found) {
                     for entry in read_dir(raid_dir.clone())
                         .expect("Error while reading boss timeline directory.")
                     {
@@ -37,18 +38,22 @@ pub fn import_boss_timeline() {
                             Ok(dir) => {
                                 // Validate file name. Expected: <BossName>_<RaidDifficulty>.csv
                                 let path = dir.path();
-                                let Some((boss_name, difficulty)) =
-                                    validate_boss_file_name(&path, &boss_list_by_raid, "csv")
+                                let Some((boss_name, _difficulty)) =
+                                    validate_boss_file_name(&path, "csv")
                                 else {
                                     continue;
                                 };
+
                                 // Boss spell source data format: [Time, Type, Ability, Source -> Target...]
                                 let Ok(mut reader) = csv::Reader::from_path(path.clone()) else {
                                     error!("Error reading boss fight timeline file as .csv file.");
                                     continue;
                                 };
+
+                                // create TimelineEntrySpell -> timeline entry
                                 // Parse data into <SpellName, [SpellCasts]>
-                                let mut casted_spells: SpellCastEntries = HashMap::new();
+                                let mut timeline_entries: Vec<TimelineEntry> =
+                                    Vec::new();
                                 for record in reader.records() {
                                     if let Ok(record) = record {
                                         let time = record
@@ -56,57 +61,52 @@ pub fn import_boss_timeline() {
                                             .map(Time::from)
                                             .unwrap_or_else(|| Time::new(0, 0.0));
                                         let spell_type = record.get(1).unwrap_or_default();
-                                        let spell = record.get(2).unwrap_or_default();
-                                        // parse spell
-                                        if spell.contains("Canceled")
-                                            | spell.contains("Anti-Magic Zone")
-                                        {
-                                            // skip canceled spells
+                                        let ability_string = record.get(2).unwrap_or_default();
+
+                                        let Some((spell_name, spell_cast_duration)) =
+                                            parse_boss_ability_string(ability_string, spell_type)
+                                        else {
                                             continue;
-                                        } else if spell.contains("sec") && spell_type == "Cast" {
-                                            // skip the second time mark of casted spell because the entry is already recorded when parsing the first time mark.
+                                        };
+                                        let Some(spell_id) =
+                                            get_boss_spell_id(boss_name, spell_name)
+                                        else {
+                                            error!(
+                                                "Unable to get boss spell id from boss_spell_list"
+                                            );
                                             continue;
-                                        }
-                                        // record only the begin timestamp of casted spells, and instant cast spell.
-                                        let (spell_name, spell_casted) = parse_ability(spell, time);
-                                        casted_spells
-                                            .entry(spell_name.to_string())
-                                            .or_insert(Vec::new())
-                                            .push(spell_casted);
+                                        };
+                                        let timeline_entry=TimelineEntry::new_cast(
+                                            boss_name.to_string(),
+                                            None,
+                                            time,
+                                            spell_id,
+                                            spell_cast_duration,
+                                        );
+                                        timeline_entries.push(timeline_entry);
                                     }
                                 }
 
-                                // Connect to SQLite database
-                                let Ok(db_connection) = Connection::open(Path::new(DATABASE))
-                                else {
-                                    error!("Unable to find database");
-                                    continue;
+                                let Some(db_connection) = connect_to_db() else{
+                                    return;
                                 };
-                                // Create a table if not exist
-                                if let Err(err) = db_connection.execute(
-                                    "CREATE TABLE boss_timeline (
-                                            boss_name      TEXT,
-                                            spell_id       TEXT,
-                                            cast_start_min INTEGER,
-                                            cast_start_sec NUMERIC,
-                                            cast_time      TEXT
-                                    );",
-                                    [],
-                                ) {
-                                    error!("Unable to find create databse table: boss_timeline. Error: {err:?}.");
-                                    continue;
-                                };
-                                for (spell_name, spell_casts) in casted_spells.iter() {
-                                    for spell_cast in spell_casts {
-                                        // find spell id fist
-                                        if let Err(err) = db_connection.execute(
-                                        "INSERT INTO boss_timeline (boss_name, name, icon, type, boss_name) VALUES (?1, ?2, ?3, ?4, ?5)",
-                                        params![&boss_spell.id, &boss_spell.name, &boss_spell.icon, boss_spell.spell_type, &boss_name],
-                                        ){
-                                            error!("boss_spell database table insert error: {err:?}. spell_id: {:?} | spell_name: {:?}", boss_spell.id, boss_spell.name);
-                                        };
-                                    }
+
+                                for timeline_entry in timeline_entries.iter(){
+                                    // Store  store timeline_entry into timeline_entry table.
+                                    let mut stmt = db_connection
+                                    .prepare(format!("INSERT into timeline_entry (boss_name, time_min, time_sec, cast_spell_id, cast_spell_duration)
+                                        VALUES ({:?}, {:?}, {:?}, {:?}, {:?});",
+                                        boss_name,
+                                        timeline_entry.time_stamp.get_min(), 
+                                        timeline_entry.time_stamp.get_sec(),
+                                        timeline_entry.cast.unwrap().0, 
+                                        timeline_entry.cast.unwrap().1, 
+                                        ).as_str(),
+                                    )
+                                    .unwrap();
+                                    let _ = stmt.execute([]);
                                 }
+                                
                             }
                             Err(err) => {
                                 error!("Error reading boss timeline boss dir: {err:?}");
@@ -124,10 +124,8 @@ pub fn import_boss_timeline() {
     }
 }
 
-// ==================Import Bosss Spell====================
 // import boss spells info from json files into database.
 pub fn import_boss_spells() {
-    let boss_list_by_raid = get_boss_list_by_raid();
     let boss_spell_path_by_raid = format!("{}/boss_spell", SOURCE_DATA.to_string(),);
 
     for entry in read_dir(Path::new(boss_spell_path_by_raid.as_str()))
@@ -141,7 +139,7 @@ pub fn import_boss_spells() {
                     .file_name()
                     .and_then(|s| s.to_str())
                     .unwrap_or_default();
-                if if_raid_exist(&boss_list_by_raid, raid_name) {
+                if if_raid_exist(raid_name) {
                     for entry in read_dir(raid_dir.clone())
                         .expect("Error while reading boss spell directory.")
                     {
@@ -151,7 +149,7 @@ pub fn import_boss_spells() {
                                 let path = dir.path();
 
                                 let Some((boss_name, _difficulty)) =
-                                    validate_boss_file_name(&path, &boss_list_by_raid, "json")
+                                    validate_boss_file_name(&path, "json")
                                 else {
                                     continue;
                                 };
@@ -172,26 +170,10 @@ pub fn import_boss_spells() {
                                 };
 
                                 // Connect to SQLite database
-                                let Ok(db_connection) = Connection::open(Path::new(DATABASE))
-                                else {
-                                    error!("Unable to find database");
+                                let Some(db_connection) = connect_to_db() else {
                                     continue;
                                 };
-                                // Create a table if not exist
-                                if let Err(err) = db_connection.execute(
-                                    "CREATE TABLE IF NOT EXISTS boss_spell (
-                                    id        TEXT PRIMARY KEY
-                                                UNIQUE,
-                                    name      TEXT,
-                                    icon      TEXT DEFAULT [www.wowhead.com/icon=],
-                                    type      TEXT DEFAULT [Default],
-                                    boss_name TEXT
-                                );",
-                                    [],
-                                ) {
-                                    error!("Unable to find create databse table: boss_spell. Error: {err:?}.");
-                                    continue;
-                                };
+                                
                                 for boss_spell in boss_spells {
                                     // TODO: save into sql database
                                     if let Err(err) = db_connection.execute(
@@ -219,65 +201,51 @@ pub fn import_boss_spells() {
 }
 
 // ==================Utils====================
-pub fn get_boss_list_by_raid() -> HashSet<Raid> {
-    // Connect to SQLite database
-    let Ok(db_connection) = Connection::open(DATABASE) else {
-        error!("Unable to connect to database.");
-        return HashSet::new();
+fn if_raid_exist(raid_name: &str) -> bool {
+    let Some(db_connection) = connect_to_db() else {
+        return false;
     };
 
-    // Query and print all bosses by raid.
     let mut stmt = db_connection
-        .prepare("SELECT name, raid_name, order_id FROM boss_list;")
-        .unwrap();
-    let db_result_iter = stmt
-        .query_map([], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, usize>(2)?,
-            ))
-        })
-        .unwrap();
-
-    let mut boss_names_by_raid: HashMap<String, HashSet<String>> = HashMap::new();
-    for raid in db_result_iter {
-        if let Err(err) = raid.map(|(boss_name, raid_name, raid_order)| {
-            boss_names_by_raid
-                .entry(raid_name)
-                .or_insert(HashSet::new())
-                .insert(boss_name);
-        }) {
-            error!("Error when writing db query result to string: {err:?}.");
-            return HashMap::new();
-        };
+        .prepare(
+            format!(
+                "SELECT EXISTS ( SELECT 1 FROM raid_list WHERE name = {:?});",
+                raid_name
+            )
+            .as_str(),
+        )
+        .expect("Failed to query for raid name.");
+    let mut rows = stmt.query([]).unwrap();
+    if let Ok(Some(row)) = rows.next() {
+        return row.get::<_, usize>(0).unwrap() == 1;
     }
-    return boss_names_by_raid;
-}
 
-pub fn if_raid_exist(boss_list: &HashMap<String, HashSet<String>>, raid_name: &str) -> bool {
-    for raid in boss_list.keys() {
-        if raid.as_str() == raid_name {
-            return true;
-        }
-    }
     return false;
 }
 
-pub fn if_boss_exist(boss_list: &HashMap<String, HashSet<String>>, boss_name: String) -> bool {
-    for raid in boss_list.values() {
-        if raid.contains(&boss_name) {
-            return true;
-        }
+fn if_boss_exist(boss_name: &str) -> bool {
+    let Some(db_connection) = connect_to_db() else {
+        return false;
+    };
+
+    let mut stmt = db_connection
+        .prepare(
+            format!(
+                "SELECT EXISTS ( SELECT 1 FROM boss_list WHERE name = {:?});",
+                boss_name
+            )
+            .as_str(),
+        )
+        .expect("Failed to query for boss name.");
+    let mut rows = stmt.query([]).unwrap();
+    if let Ok(Some(row)) = rows.next() {
+        return row.get::<_, usize>(0).unwrap() == 1;
     }
+
     return false;
 }
 
-fn validate_boss_file_name<'a>(
-    path: &'a PathBuf,
-    boss_list_by_raid: &HashMap<String, HashSet<String>>,
-    postfix: &'a str,
-) -> Option<(&'a str, &'a str)> {
+fn validate_boss_file_name<'a>(path: &'a PathBuf, postfix: &'a str) -> Option<(&'a str, &'a str)> {
     if !path.is_file() {
         error!(
             "Expected boss fight timeline file, directory encountered instead: {:?}.",
@@ -306,7 +274,7 @@ fn validate_boss_file_name<'a>(
         );
         return None;
     };
-    if !(if_boss_exist(boss_list_by_raid, boss_name.to_string())
+    if !(if_boss_exist(boss_name)
         && matches!(difficulty, "Normal" | "Heroic" | "Mythic")
         && postfix_ == postfix)
     {
@@ -318,4 +286,49 @@ fn validate_boss_file_name<'a>(
     }
 
     return Some((boss_name, difficulty));
+}
+
+fn get_boss_spell_id(boss_name: &str, boss_spell_name: &str) -> Option<usize> {
+    connect_to_db().and_then(|db_connection| {
+        let mut stmt = db_connection
+            .prepare(
+                format!(
+                    "SELECT spell_id
+                From boss_spell
+                WHERE name = {boss_spell_name:?} AND boss_name = {boss_name:?}"
+                )
+                .as_str(),
+            )
+            .unwrap();
+
+        let mut rows = stmt.query([]).unwrap();
+        if let Ok(Some(row)) = rows.next() {
+            return row.get::<_, usize>(0).ok();
+        }
+        None
+    })
+}
+
+// return (spell_name, cast_duration)
+pub fn parse_boss_ability_string<'a>(
+    ability_string: &'a str,
+    spell_type: &'a str,
+) -> Option<(&'a str, f32)> {
+    // record only the begin timestamp of casted spells, and instant cast spell.
+    if ability_string.contains("Canceled") | ability_string.contains("Anti-Magic Zone") {
+        // skip canceled spells
+        return None;
+    } else if ability_string.contains("sec") && spell_type == "Cast" {
+        // skip the second time mark of casted spell because the entry is already recorded when parsing the first time mark.
+        return None;
+    } else if ability_string.contains("sec") {
+        // eg. "01:01.963","Begin Cast","Digestive Acid 2.09 sec"
+        let splitted: Vec<&str> = ability_string.rsplitn(3, ' ').collect();
+        let spell_name = splitted[2];
+        let cast_duration: f32 = splitted[1].parse().unwrap_or_default();
+        Some((spell_name, cast_duration))
+    } else {
+        // eg. "01:50.031","Cast","Bioactive Spines"
+        Some((ability_string, 0.0))
+    }
 }
