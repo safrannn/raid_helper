@@ -1,23 +1,6 @@
-use crate::boss::*;
+use crate::{boss::*, timeline::get_timeline_boss_spells};
 use clap::{Parser, Subcommand};
 use log::info;
-
-pub fn test_cli() {
-    info!("test_cli");
-    let CargoCli::Command(cli) = CargoCli::parse();
-    let command = cli.command;
-
-    match command {
-        Command::ListRaid => println!("{:#?}", list_raid()),
-        Command::ListBoss { of_raid } => {
-            if let Some(raid_name) = of_raid {
-                println!("{:#?}", list_boss_of_raid(raid_name));
-            } else {
-                println!("{:#?}", list_boss_by_raid());
-            }
-        }
-    };
-}
 
 #[derive(Parser)]
 #[command(name = "server")]
@@ -41,4 +24,29 @@ pub enum Command {
         #[arg(default_value = None)]
         of_raid: Option<String>,
     },
+
+    GetTimelineBossSpells{
+        boss_name: String,
+        raid_difficulty: String,
+    }
+}
+
+pub fn test_cli() {
+    info!("test_cli");
+    let CargoCli::Command(cli) = CargoCli::parse();
+    let command = cli.command;
+
+    match command {
+        Command::ListRaid => println!("{:#?}", list_raid()),
+        Command::ListBoss { of_raid } => {
+            if let Some(raid_name) = of_raid {
+                println!("{:#?}", list_boss_of_raid(raid_name));
+            } else {
+                println!("{:#?}", list_boss_by_raid());
+            }
+        }
+        Command::GetTimelineBossSpells { boss_name,  raid_difficulty} => {
+            println!("{:#?}", get_timeline_boss_spells(boss_name, raid_difficulty));
+        }
+    };
 }

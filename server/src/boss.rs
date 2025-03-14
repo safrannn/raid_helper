@@ -35,6 +35,7 @@ pub fn list_raid() -> Vec<Raid> {
             continue;
         };
     }
+    println!("{:?}", raids);
     raids
 }
 

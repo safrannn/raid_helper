@@ -1,28 +1,19 @@
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-// (minute, seconds)
-pub struct Time(usize, f32);
+// seconds
+pub struct Time(f32);
 
 impl Time {
-    pub fn new(minute: usize, second: f32) -> Self {
-        Time(minute, second)
+    pub fn new( second: f32) -> Self {
+        Time(second)
     }
 
     pub fn from_milliseconds(milliseconds: usize) -> Self {
-        let mut seconds = (milliseconds as f32 / 1000.0).abs();
-        if seconds < 60.0 {
-            return Time(0, seconds);
-        } else {
-            let minutes = (seconds / 60.0).round().abs() as usize;
-            seconds -= 60.0 * minutes as f32;
-            return Time(minutes, seconds);
-        }
+        let seconds: f32 = (milliseconds as f32/ 1000.0).abs();
+        return Time(seconds);
     }
 
-    pub fn get_min(&self) -> usize {
-        return self.0;
-    }
     pub fn get_sec(&self) -> f32 {
-        return self.1;
+        return self.0;
     }
 }
 
@@ -30,10 +21,10 @@ impl From<&str> for Time {
     fn from(time_string: &str) -> Self {
         time_string
             .split_once(":")
-            .and_then(|(min, sec)| match (min.parse(), sec.parse()) {
-                (Ok(min), Ok(sec)) => Some(Time(min, sec)),
+            .and_then(|(min, sec)| match (min.parse::<f32>(), sec.parse::<f32>()) {
+                (Ok(min), Ok(sec)) => Some(Time(min*60.0+sec)),
                 _ => None,
             })
-            .unwrap_or_else(|| Time(0, 0.0))
+            .unwrap_or_else(|| Time(0.0))
     }
 }

@@ -46,7 +46,7 @@ impl Boss {
     }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Raid {
     // Name of the raid.
     name: String,

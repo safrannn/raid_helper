@@ -58,6 +58,8 @@ impl BossSpell {
     }
 }
 
+
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub enum BossSpellType {
     Default,
@@ -66,6 +68,19 @@ pub enum BossSpellType {
     RaidDamage,
     SpecialMechanics,
 }
+impl From<String> for BossSpellType {
+    fn from(boss_spell_string: String) -> Self {
+        match boss_spell_string.as_str(){
+            "Defense" => Self::Defense,
+            "SingleTargetDamange" => Self::SingleTargetDamange,
+            "RaidDamage" => Self::RaidDamage,
+            "SpecialMechanics" => Self::SpecialMechanics,
+            _ => Self::Default,
+        }
+    }
+}
+
+
 
 impl ToSql for BossSpellType {
     fn to_sql(&self) -> Result<ToSqlOutput<'_>> {

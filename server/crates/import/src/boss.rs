@@ -1,5 +1,5 @@
 use log::*;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Result};
 use std::{
     fs::*,
     io::Read,
@@ -9,7 +9,7 @@ use std::{
 use types::{
     spell::*,
     time::*,
-    timeline::TimelineEntry,
+    timeline::{RaidDifficulty, TimelineEntry},
 };
 use utils::*;
 
@@ -38,7 +38,7 @@ pub fn import_boss_timeline() {
                             Ok(dir) => {
                                 // Validate file name. Expected: <BossName>_<RaidDifficulty>.csv
                                 let path = dir.path();
-                                let Some((boss_name, _difficulty)) =
+                                let Some((boss_name, raid_difficulty)) =
                                     validate_boss_file_name(&path, "csv")
                                 else {
                                     continue;
@@ -56,14 +56,14 @@ pub fn import_boss_timeline() {
                                     Vec::new();
                                 for record in reader.records() {
                                     if let Ok(record) = record {
-                                        let time = record
+                                        let start_cast = record
                                             .get(0)
                                             .map(Time::from)
-                                            .unwrap_or_else(|| Time::new(0, 0.0));
+                                            .unwrap_or_else(|| Time::new(0.0));
                                         let spell_type = record.get(1).unwrap_or_default();
                                         let ability_string = record.get(2).unwrap_or_default();
 
-                                        let Some((spell_name, spell_cast_duration)) =
+                                        let Some((spell_name, spell_duration)) =
                                             parse_boss_ability_string(ability_string, spell_type)
                                         else {
                                             continue;
@@ -76,13 +76,16 @@ pub fn import_boss_timeline() {
                                             );
                                             continue;
                                         };
-                                        let timeline_entry=TimelineEntry::new_cast(
-                                            boss_name.to_string(),
-                                            None,
-                                            time,
+                                        let timeline_entry= TimelineEntry{
+                                            keyframe_group_id: 0, // not used
+                                            boss_name: boss_name.to_string(),
+                                            raid_difficulty: raid_difficulty.clone(),
+                                            player_id: None,
                                             spell_id,
-                                            spell_cast_duration,
-                                        );
+                                            start_cast,
+                                            spell_duration,
+                                            position: None,
+                                        };
                                         timeline_entries.push(timeline_entry);
                                     }
                                 }
@@ -94,13 +97,12 @@ pub fn import_boss_timeline() {
                                 for timeline_entry in timeline_entries.iter(){
                                     // Store  store timeline_entry into timeline_entry table.
                                     let mut stmt = db_connection
-                                    .prepare(format!("INSERT into timeline_entry (boss_name, time_min, time_sec, cast_spell_id, cast_spell_duration)
-                                        VALUES ({:?}, {:?}, {:?}, {:?}, {:?});",
+                                    .prepare(format!("INSERT into timeline_entry (boss_name, start_time_in_sec, spell_id, spell_duration)
+                                        VALUES ({:?}, {:?}, {:?}, {:?});",
                                         boss_name,
-                                        timeline_entry.time_stamp.get_min(), 
-                                        timeline_entry.time_stamp.get_sec(),
-                                        timeline_entry.cast.unwrap().0, 
-                                        timeline_entry.cast.unwrap().1, 
+                                        timeline_entry.start_cast,
+                                        timeline_entry.spell_id, 
+                                        timeline_entry.spell_duration, 
                                         ).as_str(),
                                     )
                                     .unwrap();
@@ -245,7 +247,7 @@ fn if_boss_exist(boss_name: &str) -> bool {
     return false;
 }
 
-fn validate_boss_file_name<'a>(path: &'a PathBuf, postfix: &'a str) -> Option<(&'a str, &'a str)> {
+fn validate_boss_file_name<'a>(path: &'a PathBuf, postfix: &'a str) -> Option<(&'a str, RaidDifficulty)> {
     if !path.is_file() {
         error!(
             "Expected boss fight timeline file, directory encountered instead: {:?}.",
@@ -275,7 +277,7 @@ fn validate_boss_file_name<'a>(path: &'a PathBuf, postfix: &'a str) -> Option<(&
         return None;
     };
     if !(if_boss_exist(boss_name)
-        && matches!(difficulty, "Normal" | "Heroic" | "Mythic")
+        && matches!(difficulty, "Normal" | "normal" | "Heroic"| "heroic" | "Mythic" | "mythic")
         && postfix_ == postfix)
     {
         error!(
@@ -285,6 +287,7 @@ fn validate_boss_file_name<'a>(path: &'a PathBuf, postfix: &'a str) -> Option<(&
         return None;
     }
 
+    let difficulty = RaidDifficulty::from(difficulty);
     return Some((boss_name, difficulty));
 }
 
