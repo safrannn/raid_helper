@@ -1,14 +1,13 @@
 use log::error;
+use rusqlite::Connection;
 use types::class::*;
 use utils::*;
 
-pub fn list_raid() -> Vec<Raid> {
+pub fn list_raid(conn: &mut Connection) -> Vec<Raid> {
     // Connect to SQLite database
-    let Some(db_connection) = connect_to_db() else {
-        return Vec::new();
-    };
+
     // Query and list all bosses by raid.
-    let mut stmt = db_connection
+    let mut stmt = conn
         .prepare(
             "SELECT name, patch_major, patch_minor 
         FROM raid_list 
@@ -39,12 +38,9 @@ pub fn list_raid() -> Vec<Raid> {
     raids
 }
 
-pub fn list_boss_by_raid() -> Vec<(String, Vec<Boss>)> {
+pub fn list_boss_by_raid(conn: &mut Connection) -> Vec<(String, Vec<Boss>)> {
     // Connect to SQLite database
-    let Some(db_connection) = connect_to_db() else {
-        return Vec::new();
-    };
-    let mut stmt = db_connection
+    let mut stmt = conn
         .prepare(
             "SELECT boss_list.raid_name, boss_list.name, boss_list.icon
             FROM boss_list
@@ -82,12 +78,9 @@ pub fn list_boss_by_raid() -> Vec<(String, Vec<Boss>)> {
     result
 }
 
-pub fn list_boss_of_raid(raid_name: String) -> Vec<Boss> {
+pub fn list_boss_of_raid(conn: &mut Connection, raid_name: String) -> Vec<Boss> {
     // Connect to SQLite database
-    let Some(db_connection) = connect_to_db() else {
-        return Vec::new();
-    };
-    let mut stmt = db_connection
+    let mut stmt = conn
         .prepare(
             format!(
                 "SELECT boss_list.name, boss_list.icon

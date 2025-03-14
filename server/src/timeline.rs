@@ -1,4 +1,5 @@
 use log::error;
+use rusqlite::Connection;
 use types::{
     spell::{BossSpell, BossSpellType},
     time::Time,
@@ -64,15 +65,12 @@ pub struct TimelineBossSpellsReturn {
 
 // todo!: add position here when implement boss map
 pub fn get_timeline_boss_spells(
+    conn: &mut Connection,
     boss_name: String,
     raid_difficulty: String,
 ) -> Vec<TimelineBossSpellsReturn> {
-    // Connect to SQLite database
-    let Some(db_connection) = connect_to_db() else {
-        return vec![];
-    };
     // Query and list all bosses by raid.
-    let mut stmt = db_connection
+    let mut stmt = conn
         .prepare(
             format!(
                 "SELECT keyframe_group_id, spell_id, start_time_in_sec, spell_duration 

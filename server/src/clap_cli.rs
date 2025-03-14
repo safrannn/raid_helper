@@ -1,6 +1,7 @@
 use crate::{boss::*, timeline::get_timeline_boss_spells};
 use clap::{Parser, Subcommand};
 use log::info;
+use rusqlite::Connection;
 
 #[derive(Parser)]
 #[command(name = "server")]
@@ -25,28 +26,35 @@ pub enum Command {
         of_raid: Option<String>,
     },
 
-    GetTimelineBossSpells{
+    GetTimelineBossSpells {
         boss_name: String,
         raid_difficulty: String,
-    }
+    },
 }
 
 pub fn test_cli() {
     info!("test_cli");
     let CargoCli::Command(cli) = CargoCli::parse();
     let command = cli.command;
+    let mut conn = Connection::open("database.sqlite").expect("Failed to open database");
 
     match command {
-        Command::ListRaid => println!("{:#?}", list_raid()),
+        Command::ListRaid => println!("{:#?}", list_raid(&mut conn)),
         Command::ListBoss { of_raid } => {
             if let Some(raid_name) = of_raid {
-                println!("{:#?}", list_boss_of_raid(raid_name));
+                println!("{:#?}", list_boss_of_raid(&mut conn, raid_name));
             } else {
-                println!("{:#?}", list_boss_by_raid());
+                println!("{:#?}", list_boss_by_raid(&mut conn));
             }
         }
-        Command::GetTimelineBossSpells { boss_name,  raid_difficulty} => {
-            println!("{:#?}", get_timeline_boss_spells(boss_name, raid_difficulty));
+        Command::GetTimelineBossSpells {
+            boss_name,
+            raid_difficulty,
+        } => {
+            println!(
+                "{:#?}",
+                get_timeline_boss_spells(&mut conn, boss_name, raid_difficulty)
+            );
         }
     };
 }
