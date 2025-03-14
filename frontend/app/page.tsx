@@ -12,7 +12,6 @@ import { TimelineComponent } from "@/app/timeline/timelineComponent";
 export default function Home() {
   return (
     <section className="flex flex-col items-center justify-center gap-2 py-6 md:py-8">
-
       <div className="inline-block max-w-xl text-center justify-center">
         <span className={title()}>窝窝&nbsp;</span>
         <span className={title({ color: "violet" })}>腚儿&nbsp;</span>

@@ -1,7 +1,9 @@
 import { useEffect, useState, createContext, useContext, useReducer, useCallback, useRef } from "react";
-import { Timeline, TimelineOptions } from "animation-timeline-js/lib/animation-timeline";
+import { Timeline, TimelineInteractionMode, TimelineOptions } from "animation-timeline-js/lib/animation-timeline";
 import useEditorStore from "@/app/timeline/states";
 import { useShallow } from "zustand/react/shallow";
+
+export const ROW_SIZE = 40;
 
 interface UseInitTimelineArgs {
     timelineElRef: React.RefObject<HTMLDivElement>;
@@ -17,35 +19,44 @@ export const useInitTimeline = ({
         if (timelineElRef.current) { 
           newTimeline = new Timeline({
               id: timelineElRef.current,
-              headerHeight: 30,
               snapEnabled: true,
               snapAllKeyframesOnMove: true,
               stepPx: 100,
               stepVal: 5000,
-              zoom:3,
+              zoom: 3,
               snapStep: 1000,
+              font: '13px sans-serif',
+              timelineStyle:{
+                width: 1,
+                marginTop: 15,
+                marginBottom: 20,
+              },
               rowsStyle: {
-                  fillColor: "#18181b",
+                  height: ROW_SIZE,
+                  marginBottom: 1,
               },
           });
           // Here you can subscribe on timeline component events
-          
-          // if (newTimeline){
-          //   console.log("useInitTimeline: override _renderKeyframe.");
-          //   const defaultKeyframesRenderer = newTimeline._renderKeyframe.bind(newTimeline);
-          //   newTimeline._renderKeyframe = (ctx, keyframeViewModel) => {
-          //     if (typeof keyframeViewModel.model.group === "string" && keyframeViewModel.model.group.length > 1){
-          //       const image = new Image();
-          //       image.onload = () => {
-          //           newTimeline?.redraw();
-          //       };
-          //       image.src = keyframeViewModel.model.group;
-          //         ctx.drawImage(image, keyframeViewModel.size.x - 10, keyframeViewModel.size.y - 10, keyframeViewModel.size.width + 10, keyframeViewModel.size.height + 10);
-          //     } else {
-          //         defaultKeyframesRenderer(ctx, keyframeViewModel);
-          //     }
-          //   }
-          // }
+          if (newTimeline){
+            newTimeline.setInteractionMode(TimelineInteractionMode.Pan);
+            
+            const defaultKeyframesRenderer = newTimeline?._renderKeyframe.bind(newTimeline);
+            newTimeline._renderKeyframe = (ctx, keyframeViewModel) => {
+              console.log("_renderKeyframe");
+              if (typeof keyframeViewModel.model.group === "string" && keyframeViewModel.model.group.length > 1){
+                const image = new Image();
+                var [_groupId, imageUrl] = keyframeViewModel.model.group.split("__", 2);
+                image.src = imageUrl;
+
+                ctx.fillStyle = "white"; // Border color
+                ctx.fillRect(keyframeViewModel.size.x + keyframeViewModel.size.height / 2 - 1, keyframeViewModel.size.y + 5, keyframeViewModel.size.width - 10, keyframeViewModel.size.height - 10);
+                
+                ctx.drawImage(image, keyframeViewModel.size.x + (keyframeViewModel.size.width / 2), keyframeViewModel.size.y + 6, keyframeViewModel.size.width - 12, keyframeViewModel.size.height - 12);
+              } else {
+                  defaultKeyframesRenderer(ctx, keyframeViewModel);
+              }
+            }
+          }
 
           setTimeline(newTimeline);
           console.log({ newTimeline });

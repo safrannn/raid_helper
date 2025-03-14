@@ -26,23 +26,6 @@ export const TimelineComponent = () => {
       timeline?.setModel(timelineModel);
   }, [timelineModel, timeline]);
 
-  if (timeline){
-    console.log("TimelineComponent: override _renderKeyframe.");
-    const defaultKeyframesRenderer = timeline?._renderKeyframe.bind(timeline);
-    timeline._renderKeyframe = (ctx, keyframeViewModel) => {
-      if (typeof keyframeViewModel.model.group === "string" && keyframeViewModel.model.group.length > 1){
-        const image = new Image();
-        image.onload = () => {
-            timeline?.redraw();
-        };
-        image.src = keyframeViewModel.model.group;
-          ctx.drawImage(image, keyframeViewModel.size.x - 10, keyframeViewModel.size.y - 10, keyframeViewModel.size.width + 10, keyframeViewModel.size.height + 10);
-      } else {
-          defaultKeyframesRenderer(ctx, keyframeViewModel);
-      }
-    }
-  }
-
   return(
       <section className="w-full gap-0">
         <BossList timeline={timeline} timelineElRef={timelineElRef} />

@@ -32,52 +32,35 @@ const useBossListListener = ({
   }: UseBossListListenerArgs) => {
     if (timeline){
         console.log("useBossListListener", {bossName}, {raidDifficulty}, {timelineModel});
-
         var encodedUrl = encodeURI(`http://localhost:3001/get_timeline_boss_spells/${bossName}/${raidDifficulty}`)
         console.log({encodedUrl});
         fetch(encodedUrl)
             .then((response) => response.json())
             .then((data: [TimelineBossSpellsReturn]) => {
-                console.log("response", data.length);
-
-                const keyframeIdToImage = new Map<string, string>();
-                var bossKeyFrames:TimelineKeyframeExtra[] = [];
-
+                var bossKeyFrames: TimelineKeyframeExtra[] = [];
                 for (var bossSpellCast of data){
-                    keyframeIdToImage.set(bossSpellCast.keyframe_group_id.toString(), bossSpellCast.icon_url);
+                    var keyframeGroupId =  bossSpellCast.keyframe_group_id.toString()+ "__" + bossSpellCast.icon_url;
                     if (bossSpellCast.spell_duration === 0){
-                        var newKeyframe: TimelineKeyframeExtra = createSingleKeyframe({start: bossSpellCast.start_cast * FRAME_RATE, keyframe_group_id: bossSpellCast.icon_url});
+                        var newKeyframe: TimelineKeyframeExtra = createSingleKeyframe({start: bossSpellCast.start_cast * FRAME_RATE, keyframe_group_id: keyframeGroupId});
                         bossKeyFrames.push(newKeyframe);
                     }else{
-                        var newKeyframes: TimelineKeyframeExtra[] = createIntervalKeyframes({start: bossSpellCast.start_cast * FRAME_RATE, duration: bossSpellCast.spell_duration * FRAME_RATE, keyframe_group_id: bossSpellCast.icon_url});
+                        var newKeyframes: TimelineKeyframeExtra[] = createIntervalKeyframes({start: bossSpellCast.start_cast * FRAME_RATE, duration: bossSpellCast.spell_duration * FRAME_RATE, keyframe_group_id: keyframeGroupId});
                         bossKeyFrames.push(newKeyframes[0], newKeyframes[1]);
                     }
                 }
 
                 var newBossTimelineRowName = "boss_" + bossName + "_" + raidDifficulty;
                 const newBossTimelineRow = createRow({row_id: newBossTimelineRowName, keyframes: bossKeyFrames});
-
                 console.log("bossTimelineRow", {newBossTimelineRow});
 
-                // const timelineModel = timeline.getModel();
-                if (timelineModel && bossKeyFrames.length > 1){
-                    // remove previous boss timeline row on change
-                    let index = timelineModel.rows.findIndex(item => item.id?.startsWith("boss_"));
-                    console.log({index});
-                    // add new boss timeline row on change
-                    if (index === -1) {
-                        timelineModel!.rows.unshift(newBossTimelineRow);
-                    }else{
-                        timelineModel!.rows[index] = newBossTimelineRow;
-                    }
-                    timeline?.setModel(timelineModel!);
+                timelineModel!.rows = [];
+                if (timelineModel && bossKeyFrames.length > 0){
+                    timelineModel!.rows.push(newBossTimelineRow);
                 }
-
-                timeline._renderKeyframes();
-                // timeline.redraw(); // dbg! ???
+                timeline?.setModel(timelineModel!);
             })
             .catch((error) => console.error("Error fetching boss list:", error));
-
+        timeline.redraw();
     }
 };
 
@@ -124,16 +107,15 @@ export const BossList = ({
     const handleBossOnChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         var bossName = e.target.value;
         setSelectedBoss(bossName);
-        console.log("handleBossOnChange",{bossName}, {selectedBoss}, {selectedRaidDifficultyValue})
-        if (selectedRaidDifficultyValue !== "Difficulty"){ 
+        if (selectedRaidDifficultyValue !== "Difficulty" || ""){ 
             useBossListListener({timeline, timelineElRef, timelineModel, bossName, raidDifficulty: selectedRaidDifficultyValue});
         }
+
     };
 
     const handleRaidDifficultyOnChange = (keys: SharedSelection) => {
         var key: string = keys.currentKey!;
         setSelectedRaidDifficulty(new Set([key]));
-        console.log("handleRaidDifficultyOnChange", {selectedBoss}, {selectedRaidDifficultyValue})
         if (selectedBoss !== ""){
             useBossListListener({timeline, timelineElRef, timelineModel, bossName: selectedBoss, raidDifficulty: key});
         }

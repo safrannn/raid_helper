@@ -1,9 +1,8 @@
 import { TimelineSelectable, TimelineKeyframe, Timeline, TimelineRow, TimelineRanged, TimelineKeyframeShape, TimelineKeyframeStyle } from "animation-timeline-js";
 import { v7 } from "uuid";
 
-const ICON_SIZE = 22;
-const ROW_SIZE = 30;
-
+import {ROW_SIZE} from "@/app/timeline/useInitTimeline";
+ 
 export interface TimelineKeyframeExtra
   extends TimelineKeyframe,
     TimelineSelectable,
@@ -33,8 +32,8 @@ export const createSingleKeyframe = ({
     val: start,
     group: keyframe_group_id ?? `keyframe_${v7()}`,
     style: {
-      height: ICON_SIZE,
-      width: ICON_SIZE,
+      height: ROW_SIZE,
+      width: ROW_SIZE,
       shape: TimelineKeyframeShape.Rect,
       fillColor: "#006FEE", // blue
       selectedFillColor: "#17c964", // green
@@ -59,8 +58,8 @@ export const createIntervalKeyframes = ({
     val: start,
     group: keyframe_group_id ?? `keyframe_${v7()}`,
     style: {
-      height: ICON_SIZE,
-      width: ICON_SIZE,
+      height: ROW_SIZE,
+      width: ROW_SIZE,
       shape: TimelineKeyframeShape.Rect,
       fillColor: "#006FEE", // blue
       selectedFillColor: "#17c964", // green
@@ -94,10 +93,6 @@ const createRow = ({
 }: CreateRowArgs) => {
   const row: TimelineRowExtra = {
     id: row_id ?? `row_${v7()}`,
-    style: {
-      height: ROW_SIZE,
-      marginBottom: 5,
-    },
     keyframes: keyframes ?? [],
   };
   return row;
