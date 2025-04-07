@@ -1,197 +1,259 @@
 "use client";
 
-import {Avatar, Button, Chip, Select, Selection, SelectSection, SelectItem, SelectedItems, Dropdown, DropdownTrigger,DropdownMenu, DropdownItem, SharedSelection } from "@heroui/react";
-import {useEffect, useState, useMemo} from "react";
-import {Boss, Raid, BossByRaid, TimelineBossSpellsReturn} from "@/app/types";
-import { Timeline, TimelineModel } from "animation-timeline-js";
-import createRow, { createIntervalKeyframes, createSingleKeyframe, TimelineKeyframeExtra, TimelineModelExtra, TimelineRowExtra } from "@/app/timeline/createRow";
+import {
+  Avatar,
+  SharedSelection,
+  NavbarItem,
+  Tabs,
+  Tab,
+  Select,
+  SelectItem,
+  SelectSection,
+} from "@heroui/react";
+import { useEffect, useState, Key } from "react";
+import {
+  Boss,
+  TimelineBossSpellsReturn,
+  BossMap,
+  BossSpellMap,
+  BossSpell,
+} from "@/app/types";
+import { Timeline } from "animation-timeline-js";
+import createRow, {
+  createIntervalKeyframes,
+  createSingleKeyframe,
+  TimelineKeyframeExtra,
+  TimelineModelExtra,
+} from "@/app/timeline/createRow";
 import useEditorStore from "@/app/timeline/states";
 
-const FRAME_RATE=1000;
+export const FRAME_RATE = 1000;
 
-interface RenderSpellIconsArgs{
-    timeline: Timeline | undefined;
-    keyframeIdToImage: Map<string, string>;
-    timelineRow: TimelineRowExtra;
+interface UseBossListListenerArgs {
+  timeline: Timeline | undefined;
+  timelineElRef: React.RefObject<HTMLDivElement>;
+  timelineModel: TimelineModelExtra;
+  bossName: string;
+  difficulty: string;
+  setBossSpellMap: (bossSpellMap: BossSpellMap) => void;
 }
 
-interface UseBossListListenerArgs{
-    timeline: Timeline | undefined;
-    timelineElRef: React.RefObject<HTMLDivElement>;
-    timelineModel: TimelineModelExtra;
-    bossName: string;
-    raidDifficulty: string;
-}
-
-const useBossListListener = ({ 
-    timeline,
-    timelineElRef,
-    timelineModel,
-    bossName,
-    raidDifficulty,
-  }: UseBossListListenerArgs) => {
-    if (timeline){
-        console.log("useBossListListener", {bossName}, {raidDifficulty}, {timelineModel});
-        var encodedUrl = encodeURI(`http://localhost:3001/get_timeline_boss_spells/${bossName}/${raidDifficulty}`)
-        console.log({encodedUrl});
-        fetch(encodedUrl)
-            .then((response) => response.json())
-            .then((data: [TimelineBossSpellsReturn]) => {
-                var bossKeyFrames: TimelineKeyframeExtra[] = [];
-                for (var bossSpellCast of data){
-                    var keyframeGroupId =  bossSpellCast.keyframe_group_id.toString()+ "__" + bossSpellCast.icon_url;
-                    if (bossSpellCast.spell_duration === 0){
-                        var newKeyframe: TimelineKeyframeExtra = createSingleKeyframe({start: bossSpellCast.start_cast * FRAME_RATE, keyframe_group_id: keyframeGroupId});
-                        bossKeyFrames.push(newKeyframe);
-                    }else{
-                        var newKeyframes: TimelineKeyframeExtra[] = createIntervalKeyframes({start: bossSpellCast.start_cast * FRAME_RATE, duration: bossSpellCast.spell_duration * FRAME_RATE, keyframe_group_id: keyframeGroupId});
-                        bossKeyFrames.push(newKeyframes[0], newKeyframes[1]);
-                    }
-                }
-
-                var newBossTimelineRowName = "boss_" + bossName + "_" + raidDifficulty;
-                const newBossTimelineRow = createRow({row_id: newBossTimelineRowName, keyframes: bossKeyFrames});
-                console.log("bossTimelineRow", {newBossTimelineRow});
-
-                timelineModel!.rows = [];
-                if (timelineModel && bossKeyFrames.length > 0){
-                    timelineModel!.rows.push(newBossTimelineRow);
-                }
-                timeline?.setModel(timelineModel!);
-            })
-            .catch((error) => console.error("Error fetching boss list:", error));
-        timeline.redraw();
-    }
+export const createKeyframeFromSpell = (
+  spellCastData: TimelineBossSpellsReturn
+) => {
+  var bossKeyFrames = [];
+  var keyframeGroupId =
+    spellCastData.keyframe_group_id.toString() +
+    "__" +
+    spellCastData.spell_id +
+    "__" +
+    spellCastData.icon_url;
+  if (spellCastData.spell_duration === 0) {
+    var newKeyframe: TimelineKeyframeExtra = createSingleKeyframe({
+      start: Math.round(spellCastData.start_cast * FRAME_RATE),
+      keyframe_group_id: keyframeGroupId,
+    });
+    bossKeyFrames.push(newKeyframe);
+  } else {
+    var newKeyframes: TimelineKeyframeExtra[] = createIntervalKeyframes({
+      start: Math.round(spellCastData.start_cast * FRAME_RATE),
+      duration: Math.round(spellCastData.spell_duration * FRAME_RATE),
+      keyframe_group_id: keyframeGroupId,
+    });
+    bossKeyFrames.push(newKeyframes[0], newKeyframes[1]);
+  }
+  return bossKeyFrames;
 };
 
-interface UseBossListArgs{
-    timeline: Timeline | undefined;
-    timelineElRef: React.RefObject<HTMLDivElement>;
+// load selected boss data from server
+const useBossListListener = async ({
+  timeline,
+  timelineElRef,
+  timelineModel,
+  bossName,
+  difficulty,
+  setBossSpellMap,
+}: UseBossListListenerArgs) => {
+  if (timeline) {
+    try {
+      var encodedUrl = encodeURI(
+        `http://localhost:3001/get_timeline_boss_spells/${bossName}/${difficulty}`
+      );
+      const response = await fetch(encodedUrl);
+      const data: [TimelineBossSpellsReturn] = await response.json();
+
+      var bossKeyFrames: TimelineKeyframeExtra[] = [];
+      var newBossSpellMap: BossSpellMap = new Map();
+      for (var spellCastData of data) {
+        for (var bossKeyFrame of createKeyframeFromSpell(spellCastData)) {
+          bossKeyFrames.push(bossKeyFrame);
+        }
+        newBossSpellMap.set(
+          spellCastData.spell_id,
+          new BossSpell(
+            spellCastData.spell_name,
+            spellCastData.spell_id,
+            spellCastData.icon_url,
+            spellCastData.spell_type.replace(/"/g, ""),
+            true
+          )
+        );
+      }
+
+      var newBossTimelineRowName = "boss__" + bossName + "__" + difficulty;
+      const newBossTimelineRow = createRow({
+        row_id: newBossTimelineRowName,
+        keyframes: bossKeyFrames,
+      });
+
+      timelineModel!.rows = [];
+      if (timelineModel && bossKeyFrames.length > 0) {
+        timelineModel!.rows.push(newBossTimelineRow);
+      }
+      timeline?.setModel(timelineModel!);
+
+      setBossSpellMap(newBossSpellMap);
+
+      timeline?._renderKeyframes();
+    } catch (error) {
+      console.error("Error fetching boss list:", error);
+    }
+  }
+};
+
+interface UseBossListArgs {
+  timeline: Timeline | undefined;
+  timelineElRef: React.RefObject<HTMLDivElement>;
 }
 
-export const BossList = ({ 
-    timeline,
-    timelineElRef,
-  }: UseBossListArgs) => {
-    const timelineModel = useEditorStore((state) => state.timelineModel);
-    const [bossList, setBossList] = useState<BossByRaid[]>([]);
-    const [selectedBoss, setSelectedBoss] = useState<string>("");
-    const defaultRaidDifficulty: Selection = new Set(["Difficulty"]);
-    const [selectedRaidDifficulty, setSelectedRaidDifficulty] = useState<Selection>(defaultRaidDifficulty);
+export const BossList = ({ timeline, timelineElRef }: UseBossListArgs) => {
+  const timelineModel = useEditorStore((state) => state.timelineModel);
+  const bossName_ = useEditorStore((state) => state.bossName);
+  const setBossName_ = useEditorStore((state) => state.setBossName);
+  const difficulty_ = useEditorStore((state) => state.difficulty);
+  const setDifficulty_ = useEditorStore((state) => state.setDifficulty);
+  const setAllowLoadFight_ = useEditorStore((state) => state.setAllowLoadFight);
+  const setBossMap_ = useEditorStore((state) => state.setBossMap);
+  const setBossSpellMap = useEditorStore((state) => state.setBossSpellMap);
+  const [sortedRaidList, setSortedRaidList] = useState<Array<[string, Boss[]]>>(
+    new Array()
+  );
 
-    const selectedRaidDifficultyValue = useMemo(
-        () => Array.from(selectedRaidDifficulty).join(", ").replace(/_/g, ""),
-        [selectedRaidDifficulty],
-    );
+  // Load the boss list on page load
+  useEffect(() => {
+    const loadBossList = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/list_boss");
+        const data: Array<[string, Array<Boss>]> = await response.json();
+        setSortedRaidList(data);
+        var newBossMap: BossMap = new Map();
+        for (var raidData of data) {
+          for (var bossData of raidData[1]) {
+            newBossMap.set(bossData.name, {
+              bossIcon: bossData.icon,
+              raidName: raidData[0],
+            });
+          }
+        }
+        setBossMap_(newBossMap);
+      } catch (error) {
+        console.error("Error fetching boss list:", error);
+      }
+    };
+    loadBossList();
+  }, []);
 
-    // Load the boss list on page load
-    useEffect(() => {
-        // setraidDifficulty(["Normal", "Heroic", "Mythic"])
-        fetch("http://localhost:3001/list_boss")
-            .then((response) => response.json())
-            .then((data: Array<[string, Array<Boss>]>) => {
-                var newBossList: BossByRaid[] = [];
-                for (var dataRaidBoss of data){
-                    var raidName: string = dataRaidBoss[0];
-                    var dataBossList: Boss[] = dataRaidBoss[1];
-                    for (var dataBoss of dataBossList){
-                        var dataBossByRaid = new BossByRaid(dataBoss.name, dataBoss.icon, raidName);
-                        newBossList.push(dataBossByRaid);
+  const handleBossOnSelectionChange = async (keys: SharedSelection) => {
+    if (keys.currentKey) {
+      setBossName_(keys.currentKey!);
+    }
+  };
+
+  const handleDifficultyOnSelectionChange = async (key: Key) => {
+    setDifficulty_(key.toString());
+  };
+
+  useEffect(() => {
+    const updateBossInfo = async () => {
+      if (bossName_ !== "" && difficulty_ !== "") {
+        setBossName_(bossName_);
+        setDifficulty_(difficulty_);
+        await useBossListListener({
+          timeline,
+          timelineElRef,
+          timelineModel,
+          bossName: bossName_,
+          difficulty: difficulty_,
+          setBossSpellMap,
+        });
+        setAllowLoadFight_(true);
+      } else {
+        setAllowLoadFight_(false);
+      }
+    };
+    updateBossInfo();
+  }, [bossName_, difficulty_]);
+
+  return (
+    <>
+      <NavbarItem className="flex w-1/3 ">
+        <Select
+          className="flex flex-wrap items-end md:flex-nowrap mb-6 md:mb-0 "
+          key="bossSelection"
+          placeholder="Select an encounter"
+          aria-label="Encounter"
+          variant="flat"
+          radius="sm"
+          fullWidth={true}
+          selectedKeys={[bossName_]}
+          selectionMode="single"
+          onSelectionChange={handleBossOnSelectionChange}
+          items={sortedRaidList}
+          isRequired={true}
+        >
+          {(raid: [string, Boss[]]) => {
+            var raidName: string = raid[0];
+            var bossListOfRaid: Boss[] = raid[1];
+            return (
+              <SelectSection key={raidName} title={raidName}>
+                {bossListOfRaid.map((boss) => (
+                  <SelectItem
+                    key={boss.name}
+                    startContent={
+                      <Avatar
+                        className="flex-shrink-0"
+                        size="sm"
+                        src={boss.icon}
+                      />
                     }
-                }
-                setBossList(newBossList)
-            })
-            .catch((error) => console.error("Error fetching boss list:", error));
-    }, []);
+                  >
+                    {boss.name}
+                  </SelectItem>
+                ))}
+              </SelectSection>
+            );
+          }}
+        </Select>
+      </NavbarItem>
 
-    const handleBossOnChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        var bossName = e.target.value;
-        setSelectedBoss(bossName);
-        if (selectedRaidDifficultyValue !== "Difficulty" || ""){ 
-            useBossListListener({timeline, timelineElRef, timelineModel, bossName, raidDifficulty: selectedRaidDifficultyValue});
-        }
-
-    };
-
-    const handleRaidDifficultyOnChange = (keys: SharedSelection) => {
-        var key: string = keys.currentKey!;
-        setSelectedRaidDifficulty(new Set([key]));
-        if (selectedBoss !== ""){
-            useBossListListener({timeline, timelineElRef, timelineModel, bossName: selectedBoss, raidDifficulty: key});
-        }
-    };
-
-    return (
-        <div className="flex w-full flex-wrap items-end md:flex-nowrap mb-6 md:mb-0 gap-4">
-            <Select 
-                classNames={{
-                    base: "max-w-xs",
-                    trigger: "min-h-12 py-2",
-                }}
-                isMultiline={true}
-                items={bossList}
-                placeholder="Select an encounter"
-                aria-label="Encounter"
-                // label="Encounter"
-                // labelPlacement="outside"
-                variant="bordered"
-                radius="sm"
-                selectedKeys={[selectedBoss]}
-                selectionMode="single"
-                onChange={handleBossOnChange}
-                // onSelectionChange={handleBossOnChange}
-                renderValue={(items: SelectedItems<BossByRaid>) => {
-                    return (
-                      <div className="flex flex-wrap gap-2">
-                        {items.map((item) => (
-                          <div key={item.key} className="flex items-center gap-2">
-                            <Avatar
-                                alt={item.data?.boss_name}
-                                className="flex-shrink-0"
-                                size="sm"
-                                src={item.data?.boss_icon}
-                            />
-                            <div className="flex flex-col">
-                                <span>{item.data?.boss_name}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                    );
-                  }}
-            >
-                {(boss) => (
-                    <SelectItem key={boss.boss_name} textValue={boss.boss_name}>
-                        <div className="flex gap-2 items-center">
-                            <Avatar alt={boss.boss_name} className="flex-shrink-0" size="sm" src={boss.boss_icon} />
-                            <div className="flex flex-col">
-                                <span className="text-small">{boss.boss_name}</span>
-                                <span className="text-tiny text-default-400">{boss.raid_name}</span>
-                            </div>
-                        </div>
-                    </SelectItem>
-                )}
-            </Select>
-            <Dropdown>
-                <DropdownTrigger>
-                    <Button className="capitalize" variant="bordered">
-                        {selectedRaidDifficultyValue}
-                    </Button>
-                </DropdownTrigger>
-                <DropdownMenu 
-                    aria-label="Raid Difficulty Selection" 
-                    selectedKeys={selectedRaidDifficulty}
-                    selectionMode="single"
-                    variant="flat"
-                    onSelectionChange={handleRaidDifficultyOnChange}
-                >
-                    <DropdownItem key="Normal">Normal</DropdownItem>
-                    <DropdownItem key="Heroic">Heroic</DropdownItem>
-                    <DropdownItem key="Mythic">Mythic</DropdownItem>
-                </DropdownMenu>
-            </Dropdown>
-        </div>
-    );
-}
-
+      <NavbarItem>
+        <Tabs
+          key={"difficulty"}
+          aria-label="difficulty"
+          color="primary"
+          radius="full"
+          size="sm"
+          variant={"solid"}
+          selectedKey={difficulty_}
+          onSelectionChange={handleDifficultyOnSelectionChange}
+          classNames={{
+            tabList: "gap-0",
+          }}
+        >
+          <Tab key="Heroic" title="H" className="text-md" />
+          <Tab key="Mythic" title="M" className="text-md" />
+        </Tabs>
+      </NavbarItem>
+    </>
+  );
+};

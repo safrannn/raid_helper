@@ -8,22 +8,13 @@ import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 
 import { TimelineComponent } from "@/app/timeline/timelineComponent";
+import { Divider } from "@heroui/react";
 
 export default function Home() {
   return (
-    <section className="flex flex-col items-center justify-center gap-2 py-6 md:py-8">
-      <div className="inline-block max-w-xl text-center justify-center">
-        <span className={title()}>窝窝&nbsp;</span>
-        <span className={title({ color: "violet" })}>腚儿&nbsp;</span>
-        <br />
-        <div className={subtitle({ class: "mt-4" })}>
-          (名字暂定)
-        </div>
-        <div className={subtitle({ class: "mt-0" })}>
-          (全力开发中)
-        </div>
-      </div>
-      <TimelineComponent/>
+    // <section className="h-full flex flex-col items-center justify-center gap-2 md:py-8 mt-0">
+    <section className="h-full p-2">
+      <TimelineComponent />
     </section>
   );
 }

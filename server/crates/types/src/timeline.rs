@@ -25,20 +25,20 @@ pub struct Position {
     y_pos: usize,
 }
 
-#[derive(Clone, serde::Deserialize, serde::Serialize)]
-pub enum RaidDifficulty {
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub enum Difficulty {
     Normal,
     Heroic,
     Mythic,
     Other,
 }
-impl From<&str> for RaidDifficulty {
-    fn from(raid_difficulty_string: &str) -> Self {
-        match raid_difficulty_string {
-            "Normal" | "normal" => RaidDifficulty::Normal,
-            "Heroic" | "heroic " => RaidDifficulty::Heroic,
-            "Mythic" | "mythic" => RaidDifficulty::Mythic,
-            _ => RaidDifficulty::Other,
+impl From<&str> for Difficulty {
+    fn from(difficulty_string: &str) -> Self {
+        match difficulty_string {
+            "Normal" | "normal" => Difficulty::Normal,
+            "Heroic" | "heroic " => Difficulty::Heroic,
+            "Mythic" | "mythic" => Difficulty::Mythic,
+            _ => Difficulty::Other,
         }
     }
 }
@@ -47,7 +47,7 @@ impl From<&str> for RaidDifficulty {
 pub struct TimelineEntry {
     pub keyframe_group_id: usize,
     pub boss_name: String,
-    pub raid_difficulty: RaidDifficulty,
+    pub difficulty: Difficulty,
     pub player_id: Option<usize>,
     pub spell_id: usize,
     pub start_cast: Time,

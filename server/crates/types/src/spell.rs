@@ -1,41 +1,36 @@
-use crate::class::*;
-use crate::time::*;
-use rusqlite::{
-    types::{ToSql, ToSqlOutput},
-    Result,
-};
-
-// ==================Spell Commons====================
-
-// sql table: key:id, name.......
+#[derive(Debug, Clone, Hash, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct PlayerSpell {
-    // Spell name.
-    name: String,
     // Spell id.
-    id: usize,
-    // Url of the icon image.
-    icon: String,
+    pub spell_id: usize,
+    // Spell name.
+    pub name: String,
     // Class of the caster.
-    class: PlayerClass,
+    pub class_name: String,
+    // Spec of the caster's class
+    pub spec_name: String,
     // Spell cool down in seconds.
-    cool_down: f32,
-    // Cast time in seconds
-    cast_duration: f32,
+    pub cool_down: usize,
+    // Cast time/duration in seconds
+    pub cast_duration: usize,
     // Spell type note for spell filter.
-    spell_type: PlayerSpellType,
+    pub spell_type: String,
+    // Url of the icon image.
+    pub icon: String,
 }
 
-pub enum PlayerSpellType {
-    Default,
-    BurstDamage,
-    Movement,
-    PersonalDefense,
-    RaidDefense,
-    SingleTargetHeal,
-    RaidHeal,
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PlayerSpellsByClassSpec {
+    pub class_name: String,
+    pub spells_by_spec: Vec<PlayerSpellsBySpec>,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PlayerSpellsBySpec {
+    pub spec_name: String,
+    pub spells: Vec<PlayerSpell>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct BossSpell {
     // Spell name.
     pub name: String,
@@ -44,7 +39,8 @@ pub struct BossSpell {
     // Url of the icon image.
     pub icon: String,
     // Spell type note for spell filter.
-    pub spell_type: BossSpellType,
+    pub spell_type: String,
+    pub visibility: bool,
 }
 
 impl BossSpell {
@@ -53,37 +49,8 @@ impl BossSpell {
             name,
             id: 0,
             icon: "www.wowhead.com/icon=".to_string(),
-            spell_type: BossSpellType::Default,
+            spell_type: "Default".to_string(),
+            visibility: true,
         }
-    }
-}
-
-
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub enum BossSpellType {
-    Default,
-    Defense,
-    SingleTargetDamange,
-    RaidDamage,
-    SpecialMechanics,
-}
-impl From<String> for BossSpellType {
-    fn from(boss_spell_string: String) -> Self {
-        match boss_spell_string.as_str(){
-            "Defense" => Self::Defense,
-            "SingleTargetDamange" => Self::SingleTargetDamange,
-            "RaidDamage" => Self::RaidDamage,
-            "SpecialMechanics" => Self::SpecialMechanics,
-            _ => Self::Default,
-        }
-    }
-}
-
-
-
-impl ToSql for BossSpellType {
-    fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
-        Ok(ToSqlOutput::from(format!("{:?}", self)))
     }
 }

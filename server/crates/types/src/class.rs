@@ -1,27 +1,18 @@
 // ==================Player====================
-
 pub struct PlayerClass {
     // Player class, eg. Mage, Death Kight etc.
-    name: String,
+    pub name: String,
     // Url of the icon image.
-    icon: String,
+    pub icon: String,
 }
 
 pub struct PlayerClassSpec {
     // Player class, eg. Mage, Death Kight etc.
-    name: String,
+    pub name: String,
     // Player class, eg. Fire Mage, Blood Death Kight, etc.
-    class: PlayerClass,
-    // Role of the current class, eg. tank, healer or dps.
-    role: PlayerClassSpecRole,
+    pub class: PlayerClass,
     // Url of the icon image.
-    icon: String,
-}
-
-pub enum PlayerClassSpecRole {
-    Tank,
-    Healer,
-    DPS,
+    pub icon: String,
 }
 
 pub struct Player {

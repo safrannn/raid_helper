@@ -1,0 +1,80 @@
+[
+    {
+        "name": "Oil Slick",
+        "id": 459683,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/ability_vehicle_oiljets.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Hot Wheels",
+        "id": 459995,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/ability_mage_firestarter.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Infest",
+        "id": 442257,
+        "icon": "www.wowhead.com/icon=5659379",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Broken Down",
+        "id": 459443,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/inv_gizmo_03.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Tank Buster",
+        "id": 459627,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/ability_vehicle_siegeenginecharge.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Spew Oil",
+        "id": 459671,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/spell_yorsahj_bloodboil_black.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Call Bikers",
+        "id": 459943,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/inv_viciousgoblintrike.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Job's Done",
+        "id": 467776,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/spell_fire_selfdestruct.jpg",
+        "spell_type": "Instakill"
+    },
+    {
+        "name": "Incendiary Fire",
+        "id": 468487,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/spell_shaman_improvedfirenova.jpg",
+        "spell_type": "SpecialMechanics"
+    },
+    {
+        "name": "Repair",
+        "id": 460173,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/inv_10_engineering_purchasedparts_color1.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Protective Plating",
+        "id": 466615,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/inv_shield_04.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Tune-Up",
+        "id": 460116,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/inv_misc_wrench_01.jpg",
+        "spell_type": "Default"
+    },
+    {
+        "name": "Mechanical Breakdown",
+        "id": 460603,
+        "icon": "https://wow.zamimg.com/images/wow/icons/large/ability_siege_engineer_detonate.jpg",
+        "spell_type": "Weakened"
+    }
+]

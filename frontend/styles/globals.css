@@ -2,28 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-.timelineOutlineHeader {
-    height: 30px;
-}
-.timelineOutline {
-    width: 250px;
-    min-width: 150px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    align-items: stretch;
-    align-content: stretch;
-}
-.timelineSpellBar {
-    width: calc(100% - 250px);
-    overflow: hidden;
-    align-content: stretch;
-}
-.timelineContainer {
-    display: flex;
-    background-color: lightcoral;
-    width: 100%;
-    overflow: hidden;
-    padding: 5px;
-}
+/* .timelineOutline {
+  width: 250px;
+  min-width: 150px;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: stretch;
+  align-content: stretch;
+  background-color: theme("colors.content2");
+} */

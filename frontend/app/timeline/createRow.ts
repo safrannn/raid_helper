@@ -1,8 +1,13 @@
-import { TimelineSelectable, TimelineKeyframe, Timeline, TimelineRow, TimelineRanged, TimelineKeyframeShape, TimelineKeyframeStyle } from "animation-timeline-js";
+import {
+  TimelineKeyframe,
+  TimelineKeyframeShape,
+  TimelineRanged,
+  TimelineRow,
+  TimelineSelectable,
+} from "animation-timeline-js";
+import { ROW_SIZE } from "./useInitTimeline";
 import { v7 } from "uuid";
 
-import {ROW_SIZE} from "@/app/timeline/useInitTimeline";
- 
 export interface TimelineKeyframeExtra
   extends TimelineKeyframe,
     TimelineSelectable,
@@ -11,23 +16,35 @@ export interface TimelineKeyframeExtra
 }
 
 export interface TimelineRowExtra extends TimelineRow, TimelineRanged {
-    keyframes?: TimelineKeyframeExtra[] | null;
-    id?: string;
+  keyframes?: TimelineKeyframeExtra[] | null;
+  id?: string;
 }
+
+export const checkBossRowName = (
+  bossName: String,
+  difficulty: String,
+  row: TimelineRowExtra
+) => {
+  if (row.id) {
+    const expectedName = `boss__${bossName}__${difficulty}`;
+    return row.id === expectedName;
+  }
+  return false;
+};
 
 export interface TimelineModelExtra {
-    rows: TimelineRowExtra[];
+  rows: TimelineRowExtra[];
 }
 
-interface CreateSingleKeyframeArgs{
-  start?: number,
-  keyframe_group_id?: string,
+interface CreateSingleKeyframeArgs {
+  start?: number;
+  keyframe_group_id?: string;
 }
 
 export const createSingleKeyframe = ({
-    start = 7000,
-    keyframe_group_id = undefined 
-  }: CreateSingleKeyframeArgs) => {
+  start = 500,
+  keyframe_group_id = undefined,
+}: CreateSingleKeyframeArgs) => {
   return {
     val: start,
     group: keyframe_group_id ?? `keyframe_${v7()}`,
@@ -41,55 +58,55 @@ export const createSingleKeyframe = ({
     selected: false,
     draggable: false,
   };
-}
+};
 
-interface CreateIntervalKeyframeArgs{
-  start?: number,
-  duration?: number,
-  keyframe_group_id?: string,
+interface CreateIntervalKeyframeArgs {
+  start?: number;
+  duration?: number;
+  keyframe_group_id?: string;
 }
 
 export const createIntervalKeyframes = ({
-    start = 7000,
-    duration = 0,
-    keyframe_group_id = undefined,
-  }: CreateIntervalKeyframeArgs) => {
-  return [{
-    val: start,
-    group: keyframe_group_id ?? `keyframe_${v7()}`,
-    style: {
-      height: ROW_SIZE,
-      width: ROW_SIZE,
-      shape: TimelineKeyframeShape.Rect,
-      fillColor: "#006FEE", // blue
-      selectedFillColor: "#17c964", // green
+  start = 500,
+  duration = 0,
+  keyframe_group_id = undefined,
+}: CreateIntervalKeyframeArgs) => {
+  return [
+    {
+      val: start - 500,
+      group: keyframe_group_id ?? `keyframe_${v7()}`,
+      style: {
+        height: ROW_SIZE,
+        width: ROW_SIZE,
+        shape: TimelineKeyframeShape.Rect,
+        fillColor: "#006FEE", // blue
+        selectedFillColor: "#17c964", // green
+      },
+      selected: false,
+      draggable: false,
     },
-    selected: false,
-    draggable: false,
-  },
-  {
-    val: duration? start + duration : start,
-    group: keyframe_group_id ?? `keyframe_${v7()}`,
-    style: {
-      height: 0,
-      width: 0,
-      shape: TimelineKeyframeShape.None,
+    {
+      val: duration ? start + duration : start,
+      group: keyframe_group_id ?? `keyframe_${v7()}`,
+      style: {
+        height: 0,
+        width: 0,
+        shape: TimelineKeyframeShape.None,
+      },
+      selected: false,
+      draggable: false,
     },
-    selected: false,
-    draggable: false,
-  }]
-}
-
+  ];
+};
 
 interface CreateRowArgs {
   row_id?: string;
   keyframes: TimelineKeyframeExtra[] | undefined;
 }
 
-
 const createRow = ({
   row_id = undefined,
-  keyframes = undefined
+  keyframes = undefined,
 }: CreateRowArgs) => {
   const row: TimelineRowExtra = {
     id: row_id ?? `row_${v7()}`,
@@ -97,5 +114,5 @@ const createRow = ({
   };
   return row;
 };
-  
+
 export default createRow;

@@ -8,16 +8,16 @@ const playStep = 100;
 const SAMPLE_TIME_IN_MS = 50;
 const timelineKeyframeEndDefault = 900000;
 
-interface UseOnPlayClickArgs{
+interface UseOnPlayClickArgs {
   timeline: Timeline | undefined;
   timelineElRef: React.RefObject<HTMLDivElement>;
 }
 
-export default function useOnClickPlay ({
+export default function useOnClickPlay({
   timeline,
   timelineElRef,
 }: UseOnPlayClickArgs) {
-  const {    
+  const {
     timelinePlayingState,
     setTimelinePlayingState,
     setTimelineCoarseTime,
@@ -26,7 +26,7 @@ export default function useOnClickPlay ({
       timelinePlayingState: state.timelinePlayingState,
       setTimelinePlayingState: state.setTimelinePlayingState,
       setTimelineCoarseTime: state.setTimelineCoarseTime,
-    })),
+    }))
   );
 
   const max = timelineKeyframeEndDefault;
@@ -87,16 +87,13 @@ export default function useOnClickPlay ({
     timelineElRef,
   ]);
 
-  const onClickPlay = useCallback(
-    () => {
-      setTimelinePlayingState("playing");
-      if (timeline) {
-        moveTimelineIntoTheBounds();
-        timeline.setOptions({ timelineDraggable: false });
-      }
-    },
-    [moveTimelineIntoTheBounds, setTimelinePlayingState, timeline],
-  );
+  const onClickPlay = useCallback(() => {
+    setTimelinePlayingState("playing");
+    if (timeline) {
+      moveTimelineIntoTheBounds();
+      timeline.setOptions({ timelineDraggable: false });
+    }
+  }, [moveTimelineIntoTheBounds, setTimelinePlayingState, timeline]);
 
   return { onClickPlay };
-};
+}
