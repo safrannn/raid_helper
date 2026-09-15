@@ -1,6 +1,6 @@
 use log::error;
 use rusqlite::Connection;
-use types::{class::*, spell::BossSpell};
+use types::{characters::*, spell::BossSpell};
 use utils::connect_to_db;
 
 pub fn list_raid(conn: &mut Connection) -> Vec<Raid> {
@@ -126,7 +126,7 @@ pub fn list_boss_spells(conn: &mut Connection, boss_name: String) -> Vec<BossSpe
     let mut stmt = conn
         .prepare(
             format!(
-                "SELECT name, spell_id, icon, type, visibility
+                "SELECT name, id, icon, type, visibility
             FROM boss_spell
             WHERE boss_name = {boss_name:?};",
             )
@@ -194,8 +194,7 @@ pub fn get_boss_spell_info(spell_id: usize, boss_name: &String) -> Option<BossSp
             format!(
                 "SELECT name, icon, type, visibility
                 FROM boss_spell 
-                WHERE spell_id={:?} AND boss_name={:?};",
-                spell_id, boss_name
+                WHERE id={spell_id:?} AND boss_name={boss_name:?};",
             )
             .as_str(),
         )
@@ -220,7 +219,7 @@ pub fn get_boss_spell_info(spell_id: usize, boss_name: &String) -> Option<BossSp
                         name,
                         id: spell_id,
                         icon,
-                        spell_type: spell_type,
+                        spell_type,
                         visibility: visibility == 1,
                     };
                 })

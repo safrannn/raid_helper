@@ -1,7 +1,7 @@
 import { produce } from "immer";
-import createRow from "@/app/timeline/createRow";
+import createRow from "@/app/createRow";
 import { Timeline } from "animation-timeline-js";
-import { TimelineEditorState } from "@/app/timeline/states";
+import { TimelineEditorState } from "@/app/states";
 
 export default function createAddRow(timeline: Timeline) {
   return produce((state: TimelineEditorState) => {

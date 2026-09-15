@@ -62,7 +62,7 @@ pub fn import_boss_timeline(conn: &mut Connection) {
                                         let spell_type = record.get(1).unwrap_or_default();
                                         let ability_string = record.get(2).unwrap_or_default();
 
-                                        let Some((spell_name, spell_duration)) =
+                                        let Some((spell_name, duration)) =
                                             parse_boss_ability_string(ability_string, spell_type)
                                         else {
                                             continue;
@@ -82,7 +82,7 @@ pub fn import_boss_timeline(conn: &mut Connection) {
                                             player_id: None,
                                             spell_id,
                                             start_cast,
-                                            spell_duration,
+                                            duration,
                                             position: None,
                                         };
                                         timeline_entries.push(timeline_entry);
@@ -92,13 +92,13 @@ pub fn import_boss_timeline(conn: &mut Connection) {
                                 for timeline_entry in timeline_entries.iter() {
                                     // Store  store timeline_entry into timeline_entry table.
                                     let mut stmt = conn
-                                    .prepare(format!("INSERT OR IGNORE into timeline_entry (boss_name, difficulty, start_time_in_sec, spell_id, spell_duration)
+                                    .prepare(format!("INSERT OR IGNORE into timeline_entry (boss_name, difficulty, start_time_in_sec, id, duration)
                                         VALUES ({:?}, {:?}, {:?}, {:?}, {:?});",
                                         boss_name,
                                         format!("{:?}", timeline_entry.difficulty),
                                         timeline_entry.start_cast.get_sec(),
                                         timeline_entry.spell_id,
-                                        timeline_entry.spell_duration,
+                                        timeline_entry.duration,
                                         ).as_str(),
                                     )
                                     .unwrap();
@@ -168,7 +168,7 @@ pub fn import_boss_spells(conn: &mut Connection) {
 
                                 for boss_spell in boss_spells {
                                     if let Err(err) = conn.execute(
-                                        "INSERT OR IGNORE INTO boss_spell (spell_id, name, icon, type, boss_name) VALUES (?1, ?2, ?3, ?4, ?5);",
+                                        "INSERT OR IGNORE INTO boss_spell (id, name, icon, type, boss_name) VALUES (?1, ?2, ?3, ?4, ?5);",
                                         params![&boss_spell.id, &boss_spell.name, &boss_spell.icon, boss_spell.spell_type, &boss_name],
                                     ){
                                         error!("boss_spell database table insert error: {err:?}. spell_id: {:?} | spell_name: {:?}", boss_spell.id, boss_spell.name);
@@ -291,7 +291,7 @@ fn get_boss_spell_id(boss_name: &str, boss_spell_name: &str) -> Option<usize> {
         let mut stmt = conn
             .prepare(
                 format!(
-                    "SELECT spell_id
+                    "SELECT id
                 From boss_spell
                 WHERE name = {boss_spell_name:?} AND boss_name = {boss_name:?}"
                 )
@@ -307,7 +307,7 @@ fn get_boss_spell_id(boss_name: &str, boss_spell_name: &str) -> Option<usize> {
     })
 }
 
-// return (spell_name, cast_duration)
+// return (spell_name, duration)
 pub fn parse_boss_ability_string<'a>(
     ability_string: &'a str,
     spell_type: &'a str,
@@ -323,8 +323,8 @@ pub fn parse_boss_ability_string<'a>(
         // eg. "01:01.963","Begin Cast","Digestive Acid 2.09 sec"
         let splitted: Vec<&str> = ability_string.rsplitn(3, ' ').collect();
         let spell_name = splitted[2];
-        let cast_duration: f32 = splitted[1].parse().unwrap_or_default();
-        Some((spell_name, cast_duration))
+        let duration: f32 = splitted[1].parse().unwrap_or_default();
+        Some((spell_name, duration))
     } else {
         // eg. "01:50.031","Cast","Bioactive Spines"
         Some((ability_string, 0.0))

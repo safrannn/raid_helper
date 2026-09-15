@@ -1,21 +1,4 @@
-use crate::{class::*, spell::*, time::*};
-
-pub struct Player {
-    // Player name.
-    name: String,
-    // Player class spec information.
-    class: PlayerClassSpec,
-    // using class spec icon as player icon so no icon field.
-}
-
-pub struct Boss {
-    // Name of the boss.
-    name: String,
-    // Name of the raid.
-    raid: String,
-    // Url of the icon image.
-    icon: String,
-}
+use crate::{characters::*, time::*};
 
 // Position on the boss map
 pub struct Position {
@@ -51,6 +34,6 @@ pub struct TimelineEntry {
     pub player_id: Option<usize>,
     pub spell_id: usize,
     pub start_cast: Time,
-    pub spell_duration: f32,
+    pub duration: f32,
     pub position: Option<Position>,
 }

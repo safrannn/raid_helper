@@ -1,0 +1,262 @@
+/* Dark-theme overrides for vis-timeline, scoped to the timeline container.
+   Everything the canvas lib needed a renderer hook for is plain CSS here. */
+
+.vis-raid {
+  --row-size: 40px;
+  --vis-border: rgba(255, 255, 255, 0.12);
+  --vis-bg: hsl(var(--heroui-content1));
+  --vis-bg-alt: hsl(var(--heroui-content2));
+  --vis-text: hsl(var(--heroui-foreground));
+  --vis-muted: hsl(var(--heroui-default-500));
+  --vis-accent: hsl(var(--heroui-danger));
+  --vis-selected: #22c55e;
+  --vis-item-grabbed: none;
+  background: var(--vis-bg);
+  color: var(--vis-text);
+  overflow: hidden;
+}
+
+.vis-raid .vis-timeline {
+  border: 0;
+  font: 12px var(--font-sans), sans-serif;
+}
+
+/* Panels & grid */
+.vis-raid .vis-panel.vis-center,
+.vis-raid .vis-panel.vis-left,
+.vis-raid .vis-panel.vis-right,
+.vis-raid .vis-panel.vis-top,
+.vis-raid .vis-panel.vis-bottom {
+  border-color: var(--vis-border);
+}
+.vis-raid .vis-time-axis .vis-grid.vis-minor {
+  border-color: var(--vis-border);
+}
+.vis-raid .vis-time-axis .vis-grid.vis-major {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.vis-raid .vis-time-axis .vis-text {
+  color: var(--vis-muted);
+  padding-top: 4px;
+}
+.vis-raid .vis-panel.vis-top {
+  background: var(--vis-bg-alt);
+}
+
+/* Rows: fixed height, alternating stripes, boss row highlighted */
+.vis-raid .vis-itemset .vis-group,
+.vis-raid .vis-labelset .vis-label {
+  min-height: var(--row-size);
+  height: var(--row-size);
+  border-bottom: 1px solid var(--vis-border);
+  box-sizing: border-box;
+}
+.vis-raid .vis-foreground .vis-group:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+.vis-raid .vis-labelset .vis-label.row-boss,
+.vis-raid .vis-foreground .vis-group.row-boss {
+  background: rgba(243, 18, 96, 0.08);
+}
+
+/* Left label column (replaces timelineOutline.tsx) */
+.vis-raid .vis-labelset .vis-label {
+  color: var(--vis-text);
+  width: 190px;
+}
+.vis-raid .vis-labelset .vis-label .vis-inner {
+  padding: 0 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.vis-raid .row-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  line-height: 1.1;
+}
+.vis-raid .row-label img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--row-color);
+  object-fit: cover;
+  flex: none;
+}
+.vis-raid .row-label-name {
+  font-weight: 600;
+  color: var(--row-color);
+  font-size: 12px;
+}
+.vis-raid .row-label-sub {
+  color: var(--vis-muted);
+  font-size: 10px;
+}
+
+/* "Add New Player" sentinel row */
+.vis-raid .vis-labelset .vis-label.row-add {
+  cursor: pointer;
+  border-bottom: none;
+}
+.vis-raid .vis-labelset .vis-label.row-add:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.vis-raid .vis-labelset .vis-label.row-add .row-label-name {
+  color: var(--vis-muted);
+  font-weight: 500;
+}
+.vis-raid .vis-labelset .vis-label.row-add:hover .row-label-name {
+  color: var(--vis-text);
+}
+.vis-raid .row-label-plus {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px dashed var(--vis-muted);
+  color: var(--vis-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  flex: none;
+}
+.vis-raid .vis-foreground .vis-group.row-add,
+.vis-raid .vis-foreground .vis-group.row-placeholder {
+  border-bottom: none;
+}
+
+/* Placeholder shown in the sentinel row before an encounter is selected */
+.vis-raid .vis-labelset .vis-label.row-placeholder {
+  border-bottom: none;
+}
+.vis-raid .vis-labelset .vis-label.row-placeholder .row-label-name {
+  color: var(--vis-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Items: kill the default box/line/dot chrome, draw our own */
+.vis-raid .vis-item {
+  border: 0;
+  background: transparent;
+  color: var(--vis-text);
+  padding: 0;
+  border-radius: 4px;
+}
+.vis-raid .vis-item .vis-item-content {
+  padding: 0;
+  height: 100%;
+}
+.vis-raid .vis-item.vis-line,
+.vis-raid .vis-item.vis-dot {
+  display: none;
+}
+.vis-raid .vis-item.vis-box {
+  top: 0 !important;
+}
+.vis-raid .vis-item.vis-range {
+  top: 0 !important;
+  height: var(--row-size);
+  background: color-mix(in srgb, var(--spell-color, #888) 22%, transparent);
+  border-left: 2px solid var(--spell-color, #888);
+  border-radius: 0 6px 6px 0;
+}
+/* Casts can be shorter than the icon is wide; let the icon + label spill
+   past the bar instead of being clipped to it. */
+.vis-raid .vis-item.vis-range .vis-item-overflow {
+  overflow: visible;
+}
+.vis-raid .vis-item.vis-selected {
+  background: transparent;
+}
+.vis-raid .vis-item.vis-selected .spell-item img {
+  outline: 2px solid var(--vis-selected);
+  outline-offset: -1px;
+}
+.vis-raid .vis-item.vis-range.vis-selected {
+  box-shadow: inset 0 0 0 1px var(--vis-selected);
+}
+
+.vis-raid .spell-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--row-size);
+  white-space: nowrap;
+  cursor: grab;
+}
+.vis-raid .spell-item img {
+  width: calc(var(--row-size) - 10px);
+  height: calc(var(--row-size) - 10px);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  object-fit: cover;
+  flex: none;
+  margin-left: 2px;
+}
+.vis-raid .vis-item.spell-short .spell-item span {
+  display: none;
+}
+.vis-raid .spell-item span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vis-text);
+  padding-right: 6px;
+}
+.vis-raid .vis-item.vis-range .spell-item {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--spell-color, #888) 35%, transparent),
+    transparent
+  );
+}
+
+/* Drag handles on ranges are invisible by default; keep that but widen a bit */
+.vis-raid .vis-item.vis-range .vis-drag-left,
+.vis-raid .vis-item.vis-range .vis-drag-right {
+  width: 6px;
+}
+
+/* Playhead (custom time bar) */
+.vis-raid .vis-custom-time {
+  background: var(--vis-accent);
+  width: 2px;
+  cursor: ew-resize;
+}
+.vis-raid .vis-custom-time::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -6px;
+  border: 7px solid transparent;
+  border-top: 9px solid var(--vis-accent);
+}
+.vis-raid .vis-custom-time .vis-custom-time-marker {
+  display: none;
+}
+/* Lock the playhead while playing (was `timelineDraggable: false`) */
+.vis-raid.playing .vis-custom-time {
+  pointer-events: none;
+}
+
+/* Tooltip */
+.vis-raid .vis-tooltip {
+  background: var(--vis-bg-alt);
+  color: var(--vis-text);
+  border: 1px solid var(--vis-border);
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Scrollbar in the vertical-scroll panel */
+.vis-raid .vis-panel.vis-vertical-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.vis-raid .vis-panel.vis-vertical-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}

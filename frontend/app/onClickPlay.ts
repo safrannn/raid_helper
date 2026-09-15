@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useShallow } from "zustand/shallow";
 import { Timeline } from "animation-timeline-js";
-import useEditorStore from "@/app/timeline/states";
+import useEditorStore from "@/app/states";
 
 const playDelay = 5;
 const playStep = 100;

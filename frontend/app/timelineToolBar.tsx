@@ -10,9 +10,9 @@ import {
 } from "@heroui/navbar";
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { Timeline } from "animation-timeline-js/lib/animation-timeline";
-import useOnClickPlay from "@/app/timeline/onClickPlay";
-import useEditorStore from "@/app/timeline/states";
-import { BossList } from "../bossList";
+import useOnClickPlay from "@/app/onClickPlay";
+import useEditorStore from "@/app/states";
+import { BossSelection } from "./bossSelection";
 
 interface TimelineButtonsProps {
   timeline: Timeline | undefined;
@@ -51,7 +51,7 @@ export const TimelineToolbar = ({
       position="sticky"
     >
       <NavbarContent className="h-12 w-full" justify="center">
-        <BossList timeline={timeline} timelineElRef={timelineElRef} />
+        <BossSelection />
       </NavbarContent>
 
       <NavbarContent className="h-12 " justify="end">

@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use log::error;
 use rusqlite::Connection;
 use types::spell::{PlayerSpell, PlayerSpellsByClassSpec, PlayerSpellsBySpec};
+use utils::connect_to_db;
 
 // using class spec icon as player icon.
 pub fn add_player(
@@ -10,23 +11,45 @@ pub fn add_player(
     player_name: String,
     player_class_name: String,
     player_spec_name: String,
+    boss_name: String,
+    difficulty: String,
 ) -> i32 {
     let mut stmt = conn
         .prepare(
-        format!("INSERT OR IGNORE into player_list (name, class_name, spec_name)
-                VALUES ({player_name:?}, {player_class_name:?}, {player_spec_name:?});
-                SELECT id
+        format!("SELECT name, class_name, spec_name
                 FROM player_list
-                WHERE name={player_name:?} AND class_name={player_class_name:?} AND spec_name={player_spec_name:?}
+                WHERE name={player_name:?} AND class_name={player_class_name:?} AND spec_name={player_spec_name:?} AND boss_name = {boss_name:?} AND difficulty={difficulty:?};
                 ",
                 ).as_str(),
         )
         .unwrap();
     let mut rows = stmt.query([]).unwrap();
-    if let Ok(Some(row)) = rows.next() {
-        return row.get::<_, i32>(0).unwrap();
+    if let Ok(Some(_)) = rows.next() {
+        return -2;
     }
-    return -1;
+
+    conn
+        .execute(
+        format!("INSERT INTO player_list (name, class_name, spec_name, boss_name, difficulty)
+                VALUES ({player_name:?}, {player_class_name:?}, {player_spec_name:?}, {boss_name:?}, {difficulty:?});",
+                ).as_str(),
+        ())
+        .unwrap();
+    let mut stmt = conn
+        .prepare(
+        format!("SELECT id
+                FROM player_list
+                WHERE name={player_name:?} AND class_name={player_class_name:?} AND spec_name={player_spec_name:?} AND boss_name = {boss_name:?} AND difficulty={difficulty:?};
+                ",
+                ).as_str(),
+        )
+        .unwrap();
+    let mut rows = stmt.query([]).unwrap();
+    if let Some(row) = rows.next().unwrap() {
+        return row.get::<_, i32>(0).unwrap();
+    } else {
+        return -1;
+    }
 }
 
 // <(class_name, spec_name), icon>
@@ -35,7 +58,7 @@ pub fn get_player_class_spec_icon(conn: &mut Connection) -> Vec<(String, String,
         .prepare(
             "SELECT class_name, spec_name, icon
             FROM player_class_spec
-            ORDER BY class_name ASC;",
+            ORDER BY class_name ASC, spec_name ASC;",
         )
         .unwrap();
     let db_result_iter = stmt
@@ -58,10 +81,64 @@ pub fn get_player_class_spec_icon(conn: &mut Connection) -> Vec<(String, String,
     result
 }
 
+pub fn get_player_spell(spell_id: usize) -> Option<PlayerSpell> {
+    let Some(db_connection) = connect_to_db() else {
+        return None;
+    };
+    let mut stmt = db_connection
+        .prepare(
+            format!(
+                "SELECT name, class_name, spec_name, cool_down, duration, type, icon
+                FROM player_spell 
+                WHERE id={spell_id:?};",
+            )
+            .as_str(),
+        )
+        .unwrap();
+
+    let mut db_result = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, usize>(3)?,
+                row.get::<_, usize>(4)?,
+                row.get::<_, String>(5)?,
+                row.get::<_, String>(6)?,
+            ))
+        })
+        .unwrap();
+
+    db_result.next().and_then(
+        |spell_info: Result<
+            (String, String, String, usize, usize, String, String),
+            rusqlite::Error,
+        >| {
+            spell_info
+                .map(
+                    |(name, class_name, spec_name, cool_down, duration, spell_type, icon)| {
+                        return PlayerSpell {
+                            id: spell_id,
+                            name,
+                            class_name,
+                            spec_name,
+                            cool_down,
+                            duration,
+                            spell_type,
+                            icon,
+                        };
+                    },
+                )
+                .ok()
+        },
+    )
+}
+
 pub fn get_player_spells(conn: &mut Connection) -> HashSet<PlayerSpell> {
     let mut stmt = conn
         .prepare(
-            "SELECT spell_id, name, class_name, spec_name, cool_down, cast_duration, type, icon
+            "SELECT id, name, class_name, spec_name, cool_down, duration, type, icon
             FROM player_spell",
         )
         .unwrap();
@@ -81,19 +158,19 @@ pub fn get_player_spells(conn: &mut Connection) -> HashSet<PlayerSpell> {
         .unwrap();
     let mut result = HashSet::new();
     for db_result in db_result_iter {
-        let Ok((spell_id, name, class_name, spec_name, cool_down, cast_duration, spell_type, icon)) =
+        let Ok((id, name, class_name, spec_name, cool_down, duration, spell_type, icon)) =
             db_result
         else {
             error!("Error when fetching player spells from db: {db_result:?}.");
             continue;
         };
         result.insert(PlayerSpell {
-            spell_id,
+            id,
             name,
             class_name,
             spec_name,
             cool_down,
-            cast_duration,
+            duration,
             spell_type,
             icon,
         });
@@ -171,4 +248,26 @@ pub fn get_player_spells_by_class_spec(conn: &mut Connection) -> Vec<PlayerSpell
     player_spells_by_class_spec_.sort_by_key(|entry| entry.class_name.clone());
 
     player_spells_by_class_spec_
+}
+
+pub fn get_player_class_names(conn: &mut Connection) -> Vec<String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT DISTINCT class_name
+            FROM player_class_spec
+            ORDER BY class_name ASC;",
+        )
+        .unwrap();
+    let db_result_iter = stmt
+        .query_map([], |row| Ok(row.get::<_, String>(0)?))
+        .unwrap();
+    let mut result = vec![];
+    for db_result in db_result_iter {
+        let Ok(class_name) = db_result else {
+            error!("Error when fetching class names from db: {db_result:?}.");
+            continue;
+        };
+        result.push(class_name);
+    }
+    result
 }
