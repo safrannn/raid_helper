@@ -29,7 +29,7 @@ export const TimelineToolbar = ({
         timelinePlayingState: state.timelinePlayingState,
         setTimelinePlayingState: state.setTimelinePlayingState,
         isTimelinePlayable: state.isTimelinePlayable,
-      }))
+      })),
     );
 
   const { onClickPlay } = useOnClickPlay({ timeline, timelineElRef });
@@ -50,7 +50,7 @@ export const TimelineToolbar = ({
       maxWidth="full"
       position="sticky"
     >
-      <NavbarContent className="h-12 w-full" justify="center">
+      <NavbarContent className="h-12 w-full" justify="start">
         <BossSelection />
       </NavbarContent>
 

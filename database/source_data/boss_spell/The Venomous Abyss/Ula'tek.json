@@ -1,0 +1,134 @@
+[
+  {
+    "name": "Mother's Wrath",
+    "id": 1298367,
+    "icon": "www.wowhead.com/icon=237395",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Spectral Coils",
+    "id": 1299010,
+    "icon": "www.wowhead.com/icon=3528295",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Mephitic Thrash",
+    "id": 1296301,
+    "icon": "www.wowhead.com/icon=132106",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Caustic Waves",
+    "id": 1319282,
+    "icon": "www.wowhead.com/icon=5764925",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Submerge",
+    "id": 1292521,
+    "icon": "www.wowhead.com/icon=2399230",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Call of the Serpent",
+    "id": 1304012,
+    "icon": "www.wowhead.com/icon=8125100",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Rage of the Shackled",
+    "id": 1286860,
+    "icon": "www.wowhead.com/icon=7966624",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Venomous Heart",
+    "id": 1299526,
+    "icon": "www.wowhead.com/icon=7956750",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Toxin Cloud",
+    "id": 1295995,
+    "icon": "www.wowhead.com/icon=136182",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Hatching Doom",
+    "id": 1306862,
+    "icon": "www.wowhead.com/icon=132160",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Shadow Molt",
+    "id": 1301213,
+    "icon": "www.wowhead.com/icon=463284",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Writhing Gestation",
+    "id": 1302950,
+    "icon": "www.wowhead.com/icon=538440",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Malice",
+    "id": 1290779,
+    "icon": "www.wowhead.com/icon=132352",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Grasping Fangs",
+    "id": 1301117,
+    "icon": "www.wowhead.com/icon=7956757",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Defect: Weakened",
+    "id": 1303410,
+    "icon": "www.wowhead.com/icon=1390944",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Anguished Cry",
+    "id": 1305650,
+    "icon": "www.wowhead.com/icon=135740",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Desperate Thrash",
+    "id": 1305709,
+    "icon": "www.wowhead.com/icon=1392547",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Serpent's Bite",
+    "id": 1295905,
+    "icon": "www.wowhead.com/icon=7956746",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Circling Prey",
+    "id": 1315341,
+    "icon": "www.wowhead.com/icon=7500005",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Acidic Expulsion",
+    "id": 1301800,
+    "icon": "www.wowhead.com/icon=132107",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Vicious Echoes",
+    "id": 1310764,
+    "icon": "www.wowhead.com/icon=7569526",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Petrifying Sting",
+    "id": 1303414,
+    "icon": "www.wowhead.com/icon=458241",
+    "spell_type": "Default"
+  }
+]

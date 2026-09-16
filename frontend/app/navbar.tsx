@@ -27,8 +27,8 @@ import { title, subtitle } from "@/components/primitives";
 
 export const Navbar = () => {
   return (
-    <HeroUINavbar className="h-12" maxWidth="full" position="sticky">
-      <NavbarContent
+    <HeroUINavbar className="h-10" maxWidth="full" position="sticky">
+      {/* <NavbarContent
         className="hidden h-12 sm:flex basis-3/5 sm:basis-full"
         justify="center"
       >
@@ -38,16 +38,17 @@ export const Navbar = () => {
             <span className={title({ size: "sm", color: "violet" })}>
               窝窝腚儿&nbsp;
             </span>
-            <span className="text-md">来自爱你的德儿🦉🍃&nbsp;</span>
+            <span className="text-sm">来自爱你的德儿🦉🍃&nbsp;</span>
           </div>
         </NavbarItem>
-      </NavbarContent>
+      </NavbarContent> */}
 
       <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
+        // className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="sm:flex gap-2">
+        <NavbarItem className="flex items-center gap-2">
+          <span className="text-sm">来自爱你的德儿🦉🍃&nbsp;</span>
           <Link isExternal aria-label="Github" href={siteConfig.links.github}>
             <GithubIcon className="text-default-500" />
           </Link>

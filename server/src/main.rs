@@ -30,12 +30,7 @@ struct AppState {
 struct Args {
     #[arg(long, env, default_value = "0.0.0.0:3001")]
     addr: String,
-    #[arg(
-        long,
-        env,
-        // default_value = "/home/chengsu/raid_helper/database/raid_helper.db"
-        default_value = "../database/raid_helper.db"
-    )]
+    #[arg(long, env, default_value = "../database/raid_helper.db")]
     db: String,
 }
 
@@ -44,6 +39,7 @@ async fn main() {
     env_logger::init();
 
     // server::clap_cli::test_cli();
+    // server::clap_cli::import_boss();
 
     // let args = Args::parse();
     // let mut conn: Connection = Connection::open(args.db).expect("Failed to open database");
@@ -71,6 +67,10 @@ async fn main() {
         .route("/get_fight_note", get(get_fight_note))
         .route("/update_fight_note", post(update_fight_note))
         .route("/add_player", get(add_player))
+        .route("/update_player", post(update_player))
+        .route("/add_player_spell_cast", post(add_player_spell_cast))
+        .route("/remove_player_spell_cast", post(remove_player_spell_cast))
+        .route("/update_player_spell_cast", post(update_player_spell_cast))
         .route("/get_player_class_names", get(get_player_class_names))
         .route(
             "/get_player_class_spec_icon",
@@ -258,6 +258,86 @@ async fn add_player(
         params.player_spec_name,
         params.boss_name,
         params.difficulty,
+    ))
+}
+
+#[derive(Deserialize)]
+struct UpdatePlayerParams {
+    player_id: usize,
+    player_name: String,
+    player_class_name: String,
+    player_spec_name: String,
+}
+
+// Handler for /update_player
+async fn update_player(
+    State(state): State<AppState>,
+    Query(params): Query<UpdatePlayerParams>,
+) -> Json<i32> {
+    let mut conn = state.db.lock().unwrap();
+    Json(player::update_player(
+        &mut conn,
+        params.player_id,
+        params.player_name,
+        params.player_class_name,
+        params.player_spec_name,
+    ))
+}
+
+#[derive(Deserialize)]
+struct AddPlayerSpellCastParams {
+    player_id: usize,
+    spell_id: usize,
+    start_time_in_sec: f32,
+}
+
+// Handler for /add_player_spell_cast
+async fn add_player_spell_cast(
+    State(state): State<AppState>,
+    Query(params): Query<AddPlayerSpellCastParams>,
+) -> Json<i64> {
+    let mut conn = state.db.lock().unwrap();
+    Json(player::add_player_spell_cast(
+        &mut conn,
+        params.player_id,
+        params.spell_id,
+        params.start_time_in_sec,
+    ))
+}
+
+#[derive(Deserialize)]
+struct RemovePlayerSpellCastParams {
+    keyframe_group_id: usize,
+}
+
+// Handler for /remove_player_spell_cast
+async fn remove_player_spell_cast(
+    State(state): State<AppState>,
+    Query(params): Query<RemovePlayerSpellCastParams>,
+) -> Json<bool> {
+    let mut conn = state.db.lock().unwrap();
+    Json(player::remove_player_spell_cast(
+        &mut conn,
+        params.keyframe_group_id,
+    ))
+}
+
+#[derive(Deserialize)]
+struct UpdatePlayerSpellCastParams {
+    keyframe_group_id: usize,
+    start_time_in_sec: f32,
+}
+
+// Handler for /update_player_spell_cast
+async fn update_player_spell_cast(
+    State(state): State<AppState>,
+    Query(params): Query<UpdatePlayerSpellCastParams>,
+) -> Json<bool> {
+    let mut conn = state.db.lock().unwrap();
+    Json(player::update_player_spell_cast(
+        &mut conn,
+        params.keyframe_group_id,
+        params.start_time_in_sec,
     ))
 }
 

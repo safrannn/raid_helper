@@ -8,10 +8,9 @@ import {
   Tab,
   Select,
   SelectItem,
-  SelectSection,
 } from "@heroui/react";
 import { useEffect, useState, Key } from "react";
-import { Boss, BossMap } from "@/app/types";
+import { Boss, BossMap, Raid } from "@/app/types";
 
 import useEditorStore from "@/app/states";
 import { useShallow } from "zustand/shallow";
@@ -34,13 +33,40 @@ export const BossSelection = () => {
       allowLoadFight: state.allowLoadFight,
       setAllowLoadFight: state.setAllowLoadFight,
       setBossMap: state.setBossMap,
-    }))
+    })),
   );
   const [sortedRaidList, setSortedRaidList] = useState<Array<[string, Boss[]]>>(
-    new Array()
+    new Array(),
   );
+  // Raids sorted by patch <major>.<minor> from large to small.
+  const [raidList, setRaidList] = useState<Raid[]>(new Array());
+  const [raidName, setRaidName] = useState<string>("");
 
-  // Load list of boss for select on page load
+  // Parse "<major>.<minor>" patch string into numbers for sorting.
+  const parsePatch = (patch: string): [number, number] => {
+    const [major, minor] = patch.split(".");
+    return [Number(major) || 0, Number(minor) || 0];
+  };
+
+  // Load list of raid and boss for select on page load
+  useEffect(() => {
+    const loadRaidSelection = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/list_raid");
+        const data: Raid[] = await response.json();
+        data.sort((a, b) => {
+          const [aMajor, aMinor] = parsePatch(a.patch);
+          const [bMajor, bMinor] = parsePatch(b.patch);
+          return bMajor - aMajor || bMinor - aMinor;
+        });
+        setRaidList(data);
+      } catch (error) {
+        console.error("Error fetching raid list:", error);
+      }
+    };
+    loadRaidSelection();
+  }, []);
+
   useEffect(() => {
     const loadBossSelection = async () => {
       try {
@@ -63,6 +89,30 @@ export const BossSelection = () => {
     };
     loadBossSelection();
   }, []);
+
+  const bossListOfRaid: Boss[] =
+    sortedRaidList.find((raid) => raid[0] === raidName)?.[1] ?? [];
+
+  useEffect(() => {
+    if (raidName === "" && raidList.length > 0) {
+      setRaidName(raidList[0].name);
+    }
+  }, [raidList]);
+
+  useEffect(() => {
+    if (raidName === "" || bossListOfRaid.length === 0) {
+      return;
+    }
+    if (!bossListOfRaid.some((boss) => boss.name === bossName)) {
+      setBossName(bossListOfRaid[0].name);
+    }
+  }, [raidName, sortedRaidList]);
+
+  const handleRaidOnSelectionChange = async (keys: SharedSelection) => {
+    if (keys.currentKey) {
+      setRaidName(keys.currentKey!);
+    }
+  };
 
   const handleBossOnSelectionChange = async (keys: SharedSelection) => {
     if (keys.currentKey) {
@@ -88,7 +138,30 @@ export const BossSelection = () => {
 
   return (
     <>
-      <NavbarItem className="flex w-1/3 ">
+      <NavbarItem id="raid-selection" className="flex w-[250px]">
+        <Select
+          className="flex flex-wrap items-end md:flex-nowrap mb-6 md:mb-0 "
+          key="select_expansion"
+          placeholder="Select an expansion"
+          aria-label="Expansion"
+          variant="bordered"
+          radius="sm"
+          fullWidth={true}
+          selectedKeys={[raidName]}
+          selectionMode="single"
+          onSelectionChange={handleRaidOnSelectionChange}
+          items={raidList}
+          isRequired={true}
+        >
+          {(raid: Raid) => (
+            <SelectItem key={raid.name} description={`Patch ${raid.patch}`}>
+              {raid.name}
+            </SelectItem>
+          )}
+        </Select>
+      </NavbarItem>
+
+      <NavbarItem id="boss-selection" className="flex w-[350px]">
         <Select
           className="flex flex-wrap items-end md:flex-nowrap mb-6 md:mb-0 "
           key="bossSelection"
@@ -100,31 +173,19 @@ export const BossSelection = () => {
           selectedKeys={[bossName]}
           selectionMode="single"
           onSelectionChange={handleBossOnSelectionChange}
-          items={sortedRaidList}
+          items={bossListOfRaid}
           isRequired={true}
         >
-          {(raid: [string, Boss[]]) => {
-            var raidName: string = raid[0];
-            var bossListOfRaid: Boss[] = raid[1];
-            return (
-              <SelectSection key={raidName} title={raidName}>
-                {bossListOfRaid.map((boss) => (
-                  <SelectItem
-                    key={boss.name}
-                    startContent={
-                      <Avatar
-                        className="flex-shrink-0"
-                        size="sm"
-                        src={boss.icon}
-                      />
-                    }
-                  >
-                    {boss.name}
-                  </SelectItem>
-                ))}
-              </SelectSection>
-            );
-          }}
+          {(boss: Boss) => (
+            <SelectItem
+              key={boss.name}
+              startContent={
+                <Avatar className="flex-shrink-0" size="sm" src={boss.icon} />
+              }
+            >
+              {boss.name}
+            </SelectItem>
+          )}
         </Select>
       </NavbarItem>
 

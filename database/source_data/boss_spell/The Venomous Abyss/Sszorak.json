@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Ravage",
+    "id": 1277002,
+    "icon": "www.wowhead.com/icon=4643992",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Tempest",
+    "id": 1287072,
+    "icon": "www.wowhead.com/icon=5764918",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Mutilate",
+    "id": 1277027,
+    "icon": "www.wowhead.com/icon=5764922",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Venomous Surge",
+    "id": 1305959,
+    "icon": "www.wowhead.com/icon=132108",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Raging Crosswinds",
+    "id": 1285419,
+    "icon": "www.wowhead.com/icon=1029595",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Dig In",
+    "id": 1286033,
+    "icon": "www.wowhead.com/icon=132152",
+    "spell_type": "Default"
+  }
+]

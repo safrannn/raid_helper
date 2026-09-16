@@ -6,7 +6,7 @@ import "./visTimeline.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { Button } from "@heroui/button";
-import { useDisclosure } from "@heroui/react";
+import { addToast, useDisclosure } from "@heroui/react";
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -24,9 +24,14 @@ import {
   FIGHT_LENGTH_MS,
   INITIAL_VISIBLE_MS,
   PLAYHEAD_ID,
+  RowGroup,
   formatFightTime,
+  keyframeGroupIdOf,
   loadBossRow,
   loadPlayerRows,
+  removePlayerSpellCast,
+  updatePlayer,
+  updatedPlayerRowGroup,
 } from "./model";
 import { useVisTimeline } from "./useVisTimeline";
 
@@ -36,14 +41,18 @@ const SAMPLE_TIME_IN_MS = 50;
 
 // ---- Playback --------------------------------------------------------------
 
+// The playhead position is kept in the store (`playheadMs`) so the spell panel
+// can place new casts at it without holding a reference to the timeline.
 const usePlayback = (timeline: Timeline | undefined) => {
-  const { timelinePlayingState, setTimelineCoarseTime } = useEditorStore(
-    useShallow((state) => ({
-      timelinePlayingState: state.timelinePlayingState,
-      setTimelineCoarseTime: state.setTimelineCoarseTime,
-    })),
-  );
-  const [time, setTime] = useState(0);
+  const { timelinePlayingState, setTimelineCoarseTime, time, setTime } =
+    useEditorStore(
+      useShallow((state) => ({
+        timelinePlayingState: state.timelinePlayingState,
+        setTimelineCoarseTime: state.setTimelineCoarseTime,
+        time: state.playheadMs,
+        setTime: state.setPlayheadMs,
+      })),
+    );
   const playing = timelinePlayingState === "playing";
 
   const setPlayhead = useCallback(
@@ -59,7 +68,7 @@ const usePlayback = (timeline: Timeline | undefined) => {
         timeline.setWindow(ms, ms + (e - s), { animation: false });
       }
     },
-    [timeline],
+    [timeline, setTime],
   );
 
   useEffect(() => {
@@ -81,7 +90,7 @@ const usePlayback = (timeline: Timeline | undefined) => {
       if (props.id === PLAYHEAD_ID) setTime(props.time.valueOf());
     });
     return () => timeline.off("timechanged");
-  }, [timeline]);
+  }, [timeline, setTime]);
 
   return { time, playing, setPlayhead };
 };
@@ -164,7 +173,41 @@ const VisTimelineToolbar = ({
   );
 };
 
-// ---- Resizable split -------------------------------------------------------
+const inlineRename = (nameEl: HTMLElement, current: string) =>
+  new Promise<string | null>((resolve) => {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = current;
+    nameEl.replaceChildren(input);
+
+    let done = false;
+    const finish = (value: string | null) => {
+      if (done) return;
+      done = true;
+      nameEl.textContent = current;
+      resolve(value);
+    };
+    input.addEventListener("keydown", (e) => {
+      // Keep the keys away from vis and the document-level Delete handler.
+      e.stopPropagation();
+      if (e.key === "Enter") finish(input.value.trim());
+      else if (e.key === "Escape") finish(null);
+    });
+    input.addEventListener("blur", () => finish(input.value.trim()));
+    for (const type of ["pointerdown", "mousedown", "touchstart", "click"]) {
+      input.addEventListener(type, (e) => e.stopPropagation());
+    }
+    input.focus();
+    input.select();
+  });
+
+const toastPlayerUpdateError = (code: number) =>
+  addToast({
+    title: "Error",
+    description:
+      code === -2 ? "Player already exist" : "Unable to update player",
+    color: "danger",
+  });
 
 const SPLIT_DEFAULT = 0.6;
 const SPLIT_MIN = 0.2;
@@ -197,7 +240,6 @@ const useVerticalSplit = (containerRef: React.RefObject<HTMLDivElement>) => {
     setDragging(false);
   }, []);
 
-  // Don't let the drag select text or fight the row-resize cursor.
   useEffect(() => {
     if (!dragging) return;
     const prev = document.body.style.cursor;
@@ -216,14 +258,14 @@ const useVerticalSplit = (containerRef: React.RefObject<HTMLDivElement>) => {
   };
 };
 
-// ---- Component -------------------------------------------------------------
-
 export const VisTimelineComponent = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<HTMLDivElement>(null);
-  const { timeline, items } = useVisTimeline({ containerRef });
+  const { timeline, items, groups } = useVisTimeline({ containerRef });
   const { time, playing, setPlayhead } = usePlayback(timeline);
   const addPlayer = useDisclosure();
+  const editPlayer = useDisclosure();
+  const [editingGroup, setEditingGroup] = useState<RowGroup | undefined>();
   const split = useVerticalSplit(layoutRef);
 
   const {
@@ -233,6 +275,9 @@ export const VisTimelineComponent = () => {
     setVisModel,
     setBossSpellMap,
     setHiddenBossSpellIds,
+    setSelectedGroupId,
+    removeVisItems,
+    updateVisGroup,
   } = useEditorStore(
     useShallow((state) => ({
       bossName: state.bossName,
@@ -241,6 +286,9 @@ export const VisTimelineComponent = () => {
       setVisModel: state.setVisModel,
       setBossSpellMap: state.setBossSpellMap,
       setHiddenBossSpellIds: state.setHiddenBossSpellIds,
+      setSelectedGroupId: state.setSelectedGroupId,
+      removeVisItems: state.removeVisItems,
+      updateVisGroup: state.updateVisGroup,
     })),
   );
 
@@ -271,39 +319,140 @@ export const VisTimelineComponent = () => {
     };
   }, [allowLoadFight, bossName, difficulty]);
 
+  // Double-clicking a player label renames it in place; class/spec are kept.
+  const renamePlayer = useCallback(
+    async (group: RowGroup) => {
+      if (group.playerId === undefined) return;
+      const nameEl = containerRef.current?.querySelector<HTMLElement>(
+        `[data-group-id="${CSS.escape(group.id)}"] .row-label-name`,
+      );
+      if (!nameEl || nameEl.querySelector("input")) return;
+      const name = await inlineRename(nameEl, group.name);
+      if (name === null || name === group.name) return;
+      if (name === "") {
+        addToast({
+          title: "Error",
+          description: "Please enter a name for player.",
+          color: "danger",
+        });
+        return;
+      }
+      const className = group.playerClass ?? "Generic";
+      const specName = group.playerSpec ?? "*";
+      try {
+        const code = await updatePlayer(
+          group.playerId,
+          name,
+          className,
+          specName,
+        );
+        if (code < 0) {
+          toastPlayerUpdateError(code);
+          return;
+        }
+        updateVisGroup(updatedPlayerRowGroup(group, name, className, specName));
+      } catch (error) {
+        console.error("Error renaming player:", error);
+      }
+    },
+    [updateVisGroup],
+  );
+
   useEffect(() => {
     if (!timeline) return;
-    timeline.on("doubleClick", (props: { item: string | null }) => {
-      if (!props.item) return;
-      const clicked = items.get(props.item);
-      if (!clicked) return;
-      const ids = items
-        .get({ filter: (i) => i.spellId === clicked.spellId })
-        .map((i) => i.id);
-      timeline.setSelection(ids);
-    });
+    timeline.on(
+      "doubleClick",
+      (props: {
+        what: string | null;
+        group: string | null;
+        item: string | null;
+      }) => {
+        if (props.what === "group-label" && props.group) {
+          const group = groups.get(props.group);
+          if (group?.kind === "player") renamePlayer(group);
+          return;
+        }
+        if (!props.item) return;
+        const clicked = items.get(props.item);
+        if (!clicked) return;
+        const ids = items
+          .get({ filter: (i) => i.spellId === clicked.spellId })
+          .map((i) => i.id);
+        timeline.setSelection(ids);
+      },
+    );
     return () => timeline.off("doubleClick");
-  }, [timeline, items]);
+  }, [timeline, items, groups, renamePlayer]);
 
-  // The last label-column row is the "Add New Player" sentinel (a plain
-  // placeholder until an encounter is selected).
   const hasFight = bossName !== "" && difficulty !== "";
   useEffect(() => {
     if (!timeline) return;
     timeline.on(
       "click",
-      (props: { what: string | null; group: string | null }) => {
+      (props: {
+        what: string | null;
+        group: string | null;
+        item: string | null;
+        event: Event;
+      }) => {
         if (
           hasFight &&
           props.what === "group-label" &&
           props.group === ADD_PLAYER_GROUP_ID
         ) {
           addPlayer.onOpen();
+          return;
+        }
+        if (!props.group) return;
+        const group = groups.get(props.group);
+        if (
+          (props.what === "group-label" || props.item) &&
+          group?.kind === "player"
+        ) {
+          setSelectedGroupId(props.group);
+          const target = props.event.target as HTMLElement | null;
+          if (
+            props.what === "group-label" &&
+            target?.closest(".row-label img")
+          ) {
+            setEditingGroup(group);
+            editPlayer.onOpen();
+          }
         }
       },
     );
     return () => timeline.off("click");
-  }, [timeline, addPlayer.onOpen, hasFight]);
+  }, [
+    timeline,
+    groups,
+    addPlayer.onOpen,
+    editPlayer.onOpen,
+    hasFight,
+    setSelectedGroupId,
+  ]);
+
+  // Delete / Backspace removes the selected player casts. Boss casts are
+  // never deleted, and keys typed into the notes editor are left alone.
+  useEffect(() => {
+    if (!timeline) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input, textarea, [contenteditable]")) return;
+      const ids = timeline
+        .getSelection()
+        .map(String)
+        .filter(
+          (id) => groups.get(items.get(id)?.group ?? "")?.kind === "player",
+        );
+      if (!ids.length) return;
+      e.preventDefault();
+      removeVisItems(ids);
+      for (const id of ids) removePlayerSpellCast(keyframeGroupIdOf(id));
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [timeline, items, groups, removeVisItems]);
 
   return (
     <div ref={layoutRef} className="flex flex-col w-full h-full">
@@ -329,6 +478,11 @@ export const VisTimelineComponent = () => {
         <AddNewPlayerModal
           isOpen={addPlayer.isOpen}
           onOpenChange={addPlayer.onOpenChange}
+        />
+        <AddNewPlayerModal
+          isOpen={editPlayer.isOpen}
+          onOpenChange={editPlayer.onOpenChange}
+          editing={editingGroup}
         />
       </div>
 

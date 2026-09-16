@@ -44,7 +44,7 @@
 }
 
 /* Rows: fixed height, alternating stripes, boss row highlighted */
-.vis-raid .vis-itemset .vis-group,
+.vis-raid .vis-foreground .vis-group,
 .vis-raid .vis-labelset .vis-label {
   min-height: var(--row-size);
   height: var(--row-size);
@@ -57,6 +57,18 @@
 .vis-raid .vis-labelset .vis-label.row-boss,
 .vis-raid .vis-foreground .vis-group.row-boss {
   background: rgba(243, 18, 96, 0.08);
+}
+
+/* Selected row: where the spell panel's "+" button adds casts */
+.vis-raid .vis-labelset .vis-label.row-selected,
+.vis-raid .vis-foreground .vis-group.row-selected {
+  background: color-mix(in srgb, var(--vis-selected) 10%, transparent);
+}
+.vis-raid .vis-labelset .vis-label.row-selected {
+  box-shadow: inset 3px 0 0 var(--vis-selected);
+}
+.vis-raid .vis-labelset .vis-label.row-player {
+  cursor: pointer;
 }
 
 /* Left label column (replaces timelineOutline.tsx) */
@@ -93,6 +105,23 @@
 .vis-raid .row-label-sub {
   color: var(--vis-muted);
   font-size: 10px;
+}
+
+/* A player's icon opens the edit dialog */
+.vis-raid .vis-labelset .vis-label.row-player .row-label img {
+  cursor: pointer;
+}
+
+/* Inline rename field swapped into a player label on double-click */
+.vis-raid .row-label-name input {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--row-color, #a1a1aa);
+  outline: none;
+  padding: 0;
 }
 
 /* "Add New Player" sentinel row */

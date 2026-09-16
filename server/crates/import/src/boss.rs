@@ -1,6 +1,7 @@
 use log::*;
 use rusqlite::{params, Connection, Result};
 use std::{
+    collections::{HashMap, HashSet},
     fs::*,
     io::Read,
     path::{Path, PathBuf},
@@ -329,4 +330,346 @@ pub fn parse_boss_ability_string<'a>(
         // eg. "01:50.031","Cast","Bioactive Spines"
         Some((ability_string, 0.0))
     }
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct BossSpellRecord {
+    name: String,
+    id: Option<usize>,
+    icon: Option<String>,
+    #[serde(default = "default_spell_type")]
+    spell_type: String,
+    #[serde(default = "default_visibility")]
+    visibility: bool,
+}
+
+fn default_spell_type() -> String {
+    "Default".to_string()
+}
+
+fn default_visibility() -> bool {
+    true
+}
+
+fn boss_exists(conn: &Connection, boss_name: &str) -> bool {
+    conn.query_row(
+        "SELECT EXISTS (SELECT 1 FROM boss_list WHERE name = ?1);",
+        [boss_name],
+        |row| row.get::<_, bool>(0),
+    )
+    .unwrap_or(false)
+}
+
+fn boss_name_from_path(conn: &Connection, path: &Path) -> Option<String> {
+    let stem = path.file_stem().and_then(|s| s.to_str())?;
+    if boss_exists(conn, stem) {
+        return Some(stem.to_string());
+    }
+    let (boss_name, _) = stem.rsplit_once('_')?;
+    boss_exists(conn, boss_name).then(|| boss_name.to_string())
+}
+
+pub fn import_boss_spell_file(conn: &mut Connection, path: &Path) {
+    if path.is_dir() {
+        for entry in read_dir(path).expect("Error while reading boss spell directory.") {
+            if let Ok(entry) = entry {
+                if entry.path().extension().and_then(|e| e.to_str()) == Some("json") {
+                    import_boss_spell_file(conn, &entry.path());
+                }
+            }
+        }
+        return;
+    }
+
+    let Some(boss_name) = boss_name_from_path(conn, path) else {
+        error!("Unknown boss for boss spell file: {}", path.display());
+        return;
+    };
+    let json = match read_to_string(path) {
+        Ok(json) => json,
+        Err(err) => {
+            error!("Error reading boss spell file {}: {err:?}", path.display());
+            return;
+        }
+    };
+    let boss_spells: Vec<BossSpellRecord> = match serde_json::from_str(&json) {
+        Ok(boss_spells) => boss_spells,
+        Err(err) => {
+            error!("Error parsing boss spell file {}: {err:?}", path.display());
+            return;
+        }
+    };
+
+    let (mut inserted, mut skipped) = (0, 0);
+    for spell in boss_spells {
+        let Some(id) = spell.id else {
+            warn!("{boss_name}: skipping {:?}, no spell id.", spell.name);
+            skipped += 1;
+            continue;
+        };
+        let exists = conn
+            .query_row(
+                "SELECT EXISTS (SELECT 1 FROM boss_spell WHERE id = ?1 AND boss_name = ?2);",
+                params![id, boss_name],
+                |row| row.get::<_, bool>(0),
+            )
+            .unwrap_or(false);
+        if exists {
+            skipped += 1;
+            continue;
+        }
+        let icon = spell
+            .icon
+            .unwrap_or_else(|| "www.wowhead.com/icon=".to_string());
+        match conn.execute(
+            "INSERT INTO boss_spell (id, boss_name, name, icon, type, visibility) VALUES (?1, ?2, ?3, ?4, ?5, ?6);",
+            params![id, boss_name, spell.name, icon, spell.spell_type, spell.visibility],
+        ) {
+            Ok(_) => inserted += 1,
+            Err(err) => error!(
+                "boss_spell insert error: {err:?}. spell_id: {id} | spell_name: {:?}",
+                spell.name
+            ),
+        }
+    }
+    info!(
+        "{boss_name}: imported {inserted} boss spells, skipped {skipped} ({}).",
+        path.display()
+    );
+}
+
+struct CastRow {
+    time: Time,
+    is_begin: bool,
+    canceled: bool,
+    spell_name: String,
+    source: String,
+    cast_time: Option<f32>,
+}
+
+fn parse_cast_row(record: &csv::StringRecord) -> Option<CastRow> {
+    let time = Time::from(record.get(0)?);
+    let row_type = record.get(1)?;
+    let ability = record.get(2)?.trim();
+    let source_target = record.get(3).unwrap_or_default();
+    let is_begin = row_type == "Begin Cast";
+    if !is_begin && row_type != "Cast" {
+        return None;
+    }
+
+    let strip_instance = |s: &str| -> String {
+        match s.trim().rsplit_once(' ') {
+            Some((name, n)) if n.chars().all(|c| c.is_ascii_digit()) => name.to_string(),
+            _ => s.trim().to_string(),
+        }
+    };
+
+    if let Some((source, rest)) = ability.split_once(" begins casting ") {
+        return Some(CastRow {
+            time,
+            is_begin: true,
+            canceled: false,
+            spell_name: rest.trim().to_string(),
+            source: strip_instance(source),
+            cast_time: None,
+        });
+    }
+    if let Some((source, rest)) = ability.split_once(" casts ") {
+        let spell_name = rest.split(" on ").next().unwrap_or(rest).trim().to_string();
+        return Some(CastRow {
+            time,
+            is_begin: false,
+            canceled: false,
+            spell_name,
+            source: strip_instance(source),
+            cast_time: None,
+        });
+    }
+
+    let source = strip_instance(source_target.split('→').next().unwrap_or_default());
+    if let Some(spell_name) = ability.strip_suffix(" Canceled") {
+        return Some(CastRow {
+            time,
+            is_begin,
+            canceled: true,
+            spell_name: spell_name.trim().to_string(),
+            source,
+            cast_time: None,
+        });
+    }
+    if let Some(rest) = ability.strip_suffix(" sec") {
+        if let Some((spell_name, cast_time)) = rest.rsplit_once(' ') {
+            if let Ok(cast_time) = cast_time.parse::<f32>() {
+                return Some(CastRow {
+                    time,
+                    is_begin,
+                    canceled: false,
+                    spell_name: spell_name.to_string(),
+                    source,
+                    cast_time: Some(cast_time),
+                });
+            }
+        }
+    }
+    Some(CastRow {
+        time,
+        is_begin,
+        canceled: false,
+        spell_name: ability.to_string(),
+        source,
+        cast_time: None,
+    })
+}
+
+pub fn import_boss_spell_cast_file(conn: &mut Connection, path: &Path) {
+    if path.is_dir() {
+        for entry in read_dir(path).expect("Error while reading boss timeline directory.") {
+            if let Ok(entry) = entry {
+                if entry.path().extension().and_then(|e| e.to_str()) == Some("csv") {
+                    import_boss_spell_cast_file(conn, &entry.path());
+                }
+            }
+        }
+        return;
+    }
+
+    let Some(boss_name) = boss_name_from_path(conn, path) else {
+        error!("Unknown boss for boss timeline file: {}", path.display());
+        return;
+    };
+    let difficulty = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .and_then(|stem| stem.rsplit_once('_'))
+        .map(|(_, difficulty)| Difficulty::from(difficulty))
+        .unwrap_or(Difficulty::Other);
+    if matches!(difficulty, Difficulty::Other) {
+        error!(
+            "Expected <Boss>_<Difficulty>.csv boss timeline file name: {}",
+            path.display()
+        );
+        return;
+    }
+    let difficulty = format!("{difficulty:?}");
+
+    let mut reader = match csv::Reader::from_path(path) {
+        Ok(reader) => reader,
+        Err(err) => {
+            error!(
+                "Error reading boss timeline file {}: {err:?}",
+                path.display()
+            );
+            return;
+        }
+    };
+
+    let mut spell_ids: HashMap<String, usize> = HashMap::new();
+    {
+        let mut stmt = conn
+            .prepare("SELECT name, id FROM boss_spell WHERE boss_name = ?1;")
+            .unwrap();
+        let rows = stmt
+            .query_map([&boss_name], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, usize>(1)?))
+            })
+            .unwrap();
+        for row in rows.flatten() {
+            spell_ids.insert(row.0, row.1);
+        }
+    }
+
+    let dedupe_key = |spell_id: usize, start: f32| (spell_id, (start * 2.0).round() as i64);
+    let mut seen: HashSet<(usize, i64)> = HashSet::new();
+    {
+        let mut stmt = conn
+            .prepare("SELECT spell_id, start_time_in_sec FROM boss_timeline_entry WHERE boss_name = ?1 AND difficulty = ?2;")
+            .unwrap();
+        let rows = stmt
+            .query_map(params![boss_name, difficulty], |row| {
+                Ok((row.get::<_, usize>(0)?, row.get::<_, f32>(1)?))
+            })
+            .unwrap();
+        for (spell_id, start) in rows.flatten() {
+            seen.insert(dedupe_key(spell_id, start));
+        }
+    }
+
+    let mut pending: HashMap<(String, String), f32> = HashMap::new();
+    let mut entries: Vec<(usize, f32, f32)> = Vec::new();
+    let mut unknown_spells: HashSet<String> = HashSet::new();
+    for record in reader.records().flatten() {
+        let Some(row) = parse_cast_row(&record) else {
+            continue;
+        };
+        if row.source == "Environment" || row.spell_name == "Anti-Magic Zone" {
+            continue;
+        }
+        let key = (row.spell_name.clone(), row.source.clone());
+        if row.canceled {
+            pending.remove(&key);
+            continue;
+        }
+        let time = row.time.get_sec();
+        let (start, duration) = if row.is_begin {
+            match row.cast_time {
+                // "Begin Cast","Spell 1.52 sec": complete on its own.
+                Some(cast_time) => {
+                    pending.insert(key, time);
+                    (time, cast_time)
+                }
+                // "X begins casting Spell": duration is known once the Cast row arrives.
+                None => {
+                    pending.insert(key, time);
+                    continue;
+                }
+            }
+        } else {
+            match (pending.remove(&key), row.cast_time) {
+                // Cast row that ends a cast recorded from its Begin Cast row.
+                (Some(begin), Some(cast_time)) if time - begin <= cast_time + 0.5 => continue,
+                // Cast row without a Begin Cast row: the timestamp marks the end of the cast.
+                (_, Some(cast_time)) => (time - cast_time, cast_time),
+                // "X casts Spell" completing "X begins casting Spell".
+                (Some(begin), None) if time - begin <= 30.0 => (begin, time - begin),
+                // Instant cast.
+                _ => (time, 0.0),
+            }
+        };
+
+        let Some(&spell_id) = spell_ids.get(&row.spell_name) else {
+            unknown_spells.insert(row.spell_name);
+            continue;
+        };
+        if seen.insert(dedupe_key(spell_id, start)) {
+            entries.push((spell_id, start.max(0.0), duration));
+        }
+    }
+    // Begin Cast rows in the "begins casting" format that never completed (interrupted).
+    for ((spell_name, _), begin) in pending {
+        let Some(&spell_id) = spell_ids.get(&spell_name) else {
+            unknown_spells.insert(spell_name);
+            continue;
+        };
+        if seen.insert(dedupe_key(spell_id, begin)) {
+            entries.push((spell_id, begin, 0.0));
+        }
+    }
+
+    let mut inserted = 0;
+    for (spell_id, start, duration) in &entries {
+        match conn.execute(
+            "INSERT INTO boss_timeline_entry (boss_name, difficulty, spell_id, start_time_in_sec, duration) VALUES (?1, ?2, ?3, ?4, ?5);",
+            params![boss_name, difficulty, spell_id, start, duration],
+        ) {
+            Ok(_) => inserted += 1,
+            Err(err) => error!("boss_timeline_entry insert error: {err:?}. spell_id: {spell_id}"),
+        }
+    }
+    for spell_name in &unknown_spells {
+        warn!("{boss_name} {difficulty}: no boss_spell entry for {spell_name:?}, casts skipped.");
+    }
+    info!(
+        "{boss_name} {difficulty}: imported {inserted} spell casts ({}).",
+        path.display()
+    );
 }

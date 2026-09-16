@@ -38,7 +38,12 @@ import {
 } from "@heroui/react";
 import { BossSpell, BossSpellMap, TimelineBossSpellsReturn } from "./types";
 import { FRAME_RATE } from "./timelineComponent";
-import { playerRowGroup } from "@/app/visTimeline/model";
+import {
+  RowGroup,
+  playerRowGroup,
+  updatePlayer,
+  updatedPlayerRowGroup,
+} from "@/app/visTimeline/model";
 
 setAutoFreeze(false);
 
@@ -133,7 +138,11 @@ function OutlineNode({ index, rowId }: OutlineNodeProps) {
     // player__{name}__{id}__{class}__{spec}
     const [, playerName, , playerClassName, playerSpecName] = rowId.split("__");
     characterName = playerName ?? "row" + index.toString();
-    iconURL = classSpecIconMap_.get(`${playerClassName}__${playerSpecName}`);
+    // No spec ("" or the Generic "*") falls back to the class icon.
+    iconURL =
+      playerSpecName && playerSpecName !== "*"
+        ? classSpecIconMap_.get(`${playerClassName}__${playerSpecName}`)
+        : classSpecIconMap_.get(playerClassName);
   } else {
     characterName = "row" + index.toString();
   }
@@ -174,7 +183,11 @@ const ClassSpecSelection = ({
           "http://localhost:3001/get_player_class_names",
         );
         const data: string[] = await response.json();
-        setClassNames(data);
+        // Server returns names alphabetically; pin "Generic" to the top.
+        setClassNames([
+          ...data.filter((name) => name === "Generic"),
+          ...data.filter((name) => name !== "Generic"),
+        ]);
       } catch (error) {
         console.error("Error getting player class names:", error);
       }
@@ -190,9 +203,18 @@ const ClassSpecSelection = ({
     (className: string, columnKey: React.Key, selectedClassSpec: string) => {
       switch (columnKey) {
         case "class":
+          // Selecting the class alone (no spec) uses the bare class name as
+          // the selection id; specs use `${class}__${spec}`.
           return (
             <div className="flex flex-row items-center gap-1 p-0 border-r-2 border-content1">
-              <Button isIconOnly radius="full" variant="bordered">
+              <Button
+                isIconOnly
+                id={className}
+                radius="full"
+                variant="bordered"
+                onPress={classSpecOnPress}
+                color={selectedClassSpec === className ? "success" : "default"}
+              >
                 <Avatar
                   src={classSpecIconMap_.get(className)}
                   size="sm"
@@ -293,34 +315,71 @@ const ClassSpecSelection = ({
 interface AddNewPlayerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  // When set, the dialog edits this player row instead of adding one.
+  editing?: RowGroup;
 }
 
+// ClassSpecSelection's value is "" (nothing / Generic), "{class}" (class
+// only, no spec), or "{class}__{spec}"; the db stores Generic as "Generic"/"*".
+const parseClassSpec = (selection: string): [string, string] => {
+  if (selection === "") return ["Generic", "*"];
+  const [className, specName] = selection.split("__", 2);
+  return [className, specName ?? ""];
+};
+
+const toClassSpecSelection = (className: string, specName: string) => {
+  if (className === "Generic") return "";
+  return specName === "" || specName === "*"
+    ? className
+    : `${className}__${specName}`;
+};
+
 // The "add player" dialog on its own, so it can be opened from either outline
-// (the legacy React one, or the vis-timeline label column).
+// (the legacy React one, or the vis-timeline label column). With `editing` it
+// becomes the "update player" dialog for that row.
 export function AddNewPlayerModal({
   isOpen,
   onOpenChange,
+  editing,
 }: AddNewPlayerModalProps) {
-  const { bossName, difficulty, pushTimelineRow, pushVisGroup } =
-    useEditorStore(
-      useShallow((state) => ({
-        bossName: state.bossName,
-        difficulty: state.difficulty,
-        pushTimelineRow: state.pushTimelineRow,
-        pushVisGroup: state.pushVisGroup,
-      })),
-    );
+  const {
+    bossName,
+    difficulty,
+    pushTimelineRow,
+    pushVisGroup,
+    updateVisGroup,
+  } = useEditorStore(
+    useShallow((state) => ({
+      bossName: state.bossName,
+      difficulty: state.difficulty,
+      pushTimelineRow: state.pushTimelineRow,
+      pushVisGroup: state.pushVisGroup,
+      updateVisGroup: state.updateVisGroup,
+    })),
+  );
   const [playerName, setPlayerName] = useState<string>("");
   const [selectedClassSpec, setSelectedClassSpec] = useState<string>("");
+
+  // Prefill from the row being edited (or start blank) each time it opens.
+  // In edit mode the name is fixed (renaming is the label's double-click).
+  useEffect(() => {
+    if (!isOpen) return;
+    setPlayerName(editing?.name ?? "");
+    setSelectedClassSpec(
+      editing
+        ? toClassSpecSelection(
+            editing.playerClass ?? "",
+            editing.playerSpec ?? "",
+          )
+        : "",
+    );
+  }, [isOpen, editing]);
 
   const addPlayerOnPress = (onClose: () => void) => {
     const addPlayer = async () => {
       try {
-        const playerClassSpecNames = selectedClassSpec.split("__");
-        const playerClassName =
-          playerClassSpecNames.length > 1 ? playerClassSpecNames[0] : "Generic";
-        const playerSpecName =
-          playerClassSpecNames.length > 1 ? playerClassSpecNames[1] : "*";
+        const [playerClassName, playerSpecName] =
+          parseClassSpec(selectedClassSpec);
         const newParams = new URLSearchParams({
           player_name: playerName,
           player_class_name: playerClassName,
@@ -329,9 +388,7 @@ export function AddNewPlayerModal({
           difficulty: difficulty,
         });
         const paramsString = newParams.toString();
-        const encodedUrl = encodeURI(
-          `http://localhost:3001/add_player?` + paramsString,
-        );
+        const encodedUrl = `http://localhost:3001/add_player?` + paramsString;
         const response = await fetch(encodedUrl);
         const data: number = await response.json();
         if (data === -2) {
@@ -369,6 +426,44 @@ export function AddNewPlayerModal({
         console.error("Error adding player:", error);
       }
     };
+    const editPlayer = async (row: RowGroup) => {
+      if (row.playerId === undefined) return;
+      try {
+        const [playerClassName, playerSpecName] =
+          parseClassSpec(selectedClassSpec);
+        const data = await updatePlayer(
+          row.playerId,
+          playerName,
+          playerClassName,
+          playerSpecName,
+        );
+        if (data === -2) {
+          addToast({
+            title: "Error",
+            description: "Player already exist",
+            color: "danger",
+          });
+          return;
+        } else if (data === -1) {
+          addToast({
+            title: "Error",
+            description: "Unable to update player",
+            color: "danger",
+          });
+          return;
+        }
+        updateVisGroup(
+          updatedPlayerRowGroup(
+            row,
+            playerName,
+            playerClassName,
+            playerSpecName,
+          ),
+        );
+      } catch (error) {
+        console.error("Error updating player:", error);
+      }
+    };
     if (bossName === "" || difficulty === "") {
       addToast({
         title: "Error",
@@ -382,7 +477,8 @@ export function AddNewPlayerModal({
         color: "danger",
       });
     } else {
-      addPlayer();
+      if (editing) editPlayer(editing);
+      else addPlayer();
       onClose();
     }
   };
@@ -395,7 +491,6 @@ export function AddNewPlayerModal({
       onOpenChange={onOpenChange}
       classNames={{
         body: "pb-5",
-        // header: "p-5 border-b-[1px] border-[#292f46]",
         footer: "py-2 border-t-[1px] border-[#292f46]",
         closeButton: "hover:bg-white/5 active:bg-white/10",
       }}
@@ -408,18 +503,20 @@ export function AddNewPlayerModal({
             </ModalHeader>
             <ModalBody className="">
               <Form className="gap-5 flex flex-col">
-                <Input
-                  isRequired
-                  errorMessage="Please enter a name for player."
-                  label="Enter Player Name:"
-                  labelPlacement="outside"
-                  name="name"
-                  placeholder="Enter player name:"
-                  type="text"
-                  radius="sm"
-                  value={playerName}
-                  onValueChange={setPlayerName}
-                />
+                {!editing && (
+                  <Input
+                    isRequired
+                    errorMessage="Please enter a name for player."
+                    label="Enter Player Name:"
+                    labelPlacement="outside"
+                    name="name"
+                    placeholder="Enter player name:"
+                    type="text"
+                    radius="sm"
+                    value={playerName}
+                    onValueChange={setPlayerName}
+                  />
+                )}
                 <div className="flex flex-col gap-2">
                   <h5 className="text-small text-default-900 font-medium">
                     Select class and spec:
@@ -443,7 +540,7 @@ export function AddNewPlayerModal({
                   addPlayerOnPress(onClose);
                 }}
               >
-                Add
+                {editing ? "Update" : "Add"}
               </Button>
             </ModalFooter>
           </>

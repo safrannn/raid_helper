@@ -17,6 +17,8 @@ import {
   RowGroup,
   SpellItem,
   formatAxisLabel,
+  keyframeGroupIdOf,
+  updatePlayerSpellCast,
 } from "./model";
 
 // senderId stamped on DataSet writes that originate from the store, so the
@@ -105,6 +107,8 @@ const groupTemplate = (group?: RowGroup) => {
 
   el.className = "row-label";
   el.style.setProperty("--row-color", group.color);
+  // Lets the inline rename find this label's DOM from the group id.
+  el.dataset.groupId = group.id;
 
   const img = document.createElement("img");
   img.src = icon;
@@ -159,6 +163,7 @@ export const useVisTimeline = ({ containerRef }: UseVisTimelineArgs) => {
     visGroups,
     visItems,
     moveVisItem,
+    selectedGroupId,
     hiddenBossSpellIds,
     bossMap,
     classSpecIconMap,
@@ -168,6 +173,7 @@ export const useVisTimeline = ({ containerRef }: UseVisTimelineArgs) => {
       visGroups: state.visGroups,
       visItems: state.visItems,
       moveVisItem: state.moveVisItem,
+      selectedGroupId: state.selectedGroupId,
       hiddenBossSpellIds: state.hiddenBossSpellIds,
       bossMap: state.bossMap,
       classSpecIconMap: state.classSpecIconMap,
@@ -241,39 +247,53 @@ export const useVisTimeline = ({ containerRef }: UseVisTimelineArgs) => {
 
   // Store → DataSets. Store order is row order; the sentinel row is always
   // present and always last, so the label column never disappears. It only
-  // becomes the "Add New Player" row once an encounter is selected.
+  // becomes the "Add New Player" row once an encounter is selected. The
+  // selected row (target of the spell panel's "+") is flagged via className.
   useEffect(() => {
     syncDataSet(groupsRef.current, [
-      ...visGroups.map((g, order) => ({ ...g, order })),
+      ...visGroups.map((g, order) => ({
+        ...g,
+        order,
+        className:
+          g.id === selectedGroupId
+            ? `${g.className} row-selected`
+            : g.className,
+      })),
       {
         ...(hasFight ? ADD_PLAYER_GROUP : PLACEHOLDER_GROUP),
         order: Number.MAX_SAFE_INTEGER,
       },
     ]);
-  }, [visGroups, hasFight]);
+  }, [visGroups, hasFight, selectedGroupId]);
   useEffect(() => {
     syncDataSet(itemsRef.current, visItems);
   }, [visItems]);
 
-  // DataSet → store (user drags).
+  // DataSet → store (user drags). Player casts are also written to the db;
+  // boss casts come from the imported timeline and stay as they are.
   useEffect(() => {
     const items = itemsRef.current;
+    const groups = groupsRef.current;
     const onUpdate = (
       _: "update",
-      payload: { items: (string | number)[] } | null,
+      payload: { items: (string | number)[]; oldData?: SpellItem[] } | null,
       senderId?: string | number | null,
     ) => {
       if (senderId === STORE_SENDER || !payload) return;
-      for (const id of payload.items) {
+      payload.items.forEach((id, i) => {
         const it = items.get(id);
-        if (it) {
-          moveVisItem(
-            String(id),
-            Number(it.start),
-            it.end === undefined ? undefined : Number(it.end),
-          );
+        if (!it) return;
+        const start = Number(it.start);
+        moveVisItem(
+          String(id),
+          start,
+          it.end === undefined ? undefined : Number(it.end),
+        );
+        const moved = payload.oldData?.[i]?.start !== start;
+        if (moved && groups.get(it.group)?.kind === "player") {
+          updatePlayerSpellCast(keyframeGroupIdOf(String(id)), start);
         }
-      }
+      });
     };
     items.on("update", onUpdate);
     return () => items.off("update", onUpdate);

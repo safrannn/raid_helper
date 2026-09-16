@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Dripping Fangs",
+    "id": 1280935,
+    "icon": "www.wowhead.com/icon=132103",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Imbibe",
+    "id": 1284663,
+    "icon": "www.wowhead.com/icon=136070",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Malignance",
+    "id": 1304459,
+    "icon": "www.wowhead.com/icon=132099",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Caustic Surge",
+    "id": 459026,
+    "icon": "www.wowhead.com/icon=132099",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Malignant Catalyst",
+    "id": 1282516,
+    "icon": "www.wowhead.com/icon=5764921",
+    "spell_type": "Default"
+  }
+]

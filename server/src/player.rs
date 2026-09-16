@@ -52,6 +52,58 @@ pub fn add_player(
     }
 }
 
+pub fn update_player(
+    conn: &mut Connection,
+    player_id: usize,
+    player_name: String,
+    player_class_name: String,
+    player_spec_name: String,
+) -> i32 {
+    let fight: Result<(String, String), _> = conn.query_row(
+        "SELECT boss_name, difficulty FROM player_list WHERE id = ?1;",
+        [player_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    );
+    let Ok((boss_name, difficulty)) = fight else {
+        error!("Player not found in db: {player_id}.");
+        return -1;
+    };
+
+    let duplicate: Result<usize, _> = conn.query_row(
+        "SELECT id FROM player_list
+        WHERE name = ?1 AND class_name = ?2 AND spec_name = ?3
+            AND boss_name = ?4 AND difficulty = ?5 AND id != ?6;",
+        (
+            &player_name,
+            &player_class_name,
+            &player_spec_name,
+            &boss_name,
+            &difficulty,
+            player_id,
+        ),
+        |row| row.get(0),
+    );
+    if duplicate.is_ok() {
+        return -2;
+    }
+
+    match conn.execute(
+        "UPDATE player_list SET name = ?1, class_name = ?2, spec_name = ?3 WHERE id = ?4;",
+        (
+            &player_name,
+            &player_class_name,
+            &player_spec_name,
+            player_id,
+        ),
+    ) {
+        Ok(_) => player_id as i32,
+        Err(err) => {
+            error!("Error when updating player in db: {err:?}.");
+            -1
+        }
+    }
+}
+
 // <(class_name, spec_name), icon>
 pub fn get_player_class_spec_icon(conn: &mut Connection) -> Vec<(String, String, String)> {
     let mut stmt = conn
@@ -270,4 +322,53 @@ pub fn get_player_class_names(conn: &mut Connection) -> Vec<String> {
         result.push(class_name);
     }
     result
+}
+
+pub fn add_player_spell_cast(
+    conn: &mut Connection,
+    player_id: usize,
+    spell_id: usize,
+    start_time_in_sec: f32,
+) -> i64 {
+    match conn.execute(
+        "INSERT INTO player_timeline_entry (player_id, spell_id, start_time_in_sec)
+        VALUES (?1, ?2, ?3);",
+        (player_id, spell_id, start_time_in_sec),
+    ) {
+        Ok(_) => conn.last_insert_rowid(),
+        Err(err) => {
+            error!("Error when adding player spell cast to db: {err:?}.");
+            -1
+        }
+    }
+}
+
+pub fn remove_player_spell_cast(conn: &mut Connection, keyframe_group_id: usize) -> bool {
+    match conn.execute(
+        "DELETE FROM player_timeline_entry WHERE keyframe_group_id = ?1;",
+        [keyframe_group_id],
+    ) {
+        Ok(deleted) => deleted > 0,
+        Err(err) => {
+            error!("Error when removing player spell cast from db: {err:?}.");
+            false
+        }
+    }
+}
+
+pub fn update_player_spell_cast(
+    conn: &mut Connection,
+    keyframe_group_id: usize,
+    start_time_in_sec: f32,
+) -> bool {
+    match conn.execute(
+        "UPDATE player_timeline_entry SET start_time_in_sec = ?1 WHERE keyframe_group_id = ?2;",
+        (start_time_in_sec, keyframe_group_id),
+    ) {
+        Ok(updated) => updated > 0,
+        Err(err) => {
+            error!("Error when updating player spell cast in db: {err:?}.");
+            false
+        }
+    }
 }

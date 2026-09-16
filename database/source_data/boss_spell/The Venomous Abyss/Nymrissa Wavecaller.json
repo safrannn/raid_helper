@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Abyssal Rain",
+    "id": 1260837,
+    "icon": "www.wowhead.com/icon=135787",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Alluring Bubble",
+    "id": 1257717,
+    "icon": "www.wowhead.com/icon=132852",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Iceblade Flurry",
+    "id": 1282937,
+    "icon": "www.wowhead.com/icon=985087",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Chilling Frost",
+    "id": 1313393,
+    "icon": "www.wowhead.com/icon=135785",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Lingering Frost",
+    "id": 1257654,
+    "icon": "www.wowhead.com/icon=612394",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Swirling Whirlpools",
+    "id": 1258673,
+    "icon": "www.wowhead.com/icon=132845",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Water Jet",
+    "id": 1258901,
+    "icon": "www.wowhead.com/icon=1698701",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Pulsing Tides",
+    "id": 1258894,
+    "icon": "www.wowhead.com/icon=893779",
+    "spell_type": "Default"
+  }
+]

@@ -1,19 +1,19 @@
 "use client";
 
 import {
+  addToast,
   Avatar,
   Button,
   CardHeader,
   Chip,
   Link,
-  PressEvent,
   Switch,
 } from "@heroui/react";
 import "boxicons";
 import { Tabs, Tab, Card, CardBody } from "@heroui/react";
 import useEditorStore from "./states";
 import React, { useEffect, useState } from "react";
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { PlusIcon } from "@heroicons/react/24/solid";
 import {
   BossSpell,
   PlayerClassSpecIconMap,
@@ -24,6 +24,11 @@ import {
 import { Timeline } from "animation-timeline-js";
 import { checkBossRowName, TimelineModelExtra } from "./createRow";
 import { useShallow } from "zustand/shallow";
+import {
+  addPlayerSpellCast,
+  castToItem,
+  FRAME_RATE,
+} from "./visTimeline/model";
 
 function getClassSpecIcon(
   className: string,
@@ -36,8 +41,22 @@ function getClassSpecIcon(
     return classSpecIconMap_.get(className + "__" + specName)!;
   }
 }
+const GENERIC_CLASS = "Generic";
+
+// A Generic row (any class) can take any spell; a class row takes its own
+// class's spells plus the Generic ones.
+export const isSpellAllowedForClass = (
+  spellClass: string,
+  rowClass: string | undefined,
+) =>
+  rowClass === undefined ||
+  rowClass === GENERIC_CLASS ||
+  spellClass === GENERIC_CLASS ||
+  spellClass === rowClass;
+
 interface PlayerSpellCardProps {
   spell_name: string;
+  spell_class_name: string;
   spell_type: string;
   spell_cool_down: number;
   spell_duration: number;
@@ -48,6 +67,7 @@ interface PlayerSpellCardProps {
 
 export default function PlayerSpellCard({
   spell_name,
+  spell_class_name,
   spell_type,
   spell_cool_down,
   spell_duration,
@@ -55,12 +75,64 @@ export default function PlayerSpellCard({
   spell_icon,
   spec_icon,
 }: PlayerSpellCardProps) {
-  const [isAdded, setIsAdded] = useState<boolean>(false);
-  const playerSpellAddButtonOnPress = (e: PressEvent) => {
-    // create frame at current pointer location
-    // icon = spell icon
-    // keyframe length = spell cast time
-  }; // todo!
+  const addVisItem = useEditorStore((state) => state.addVisItem);
+
+  const playerSpellAddButtonOnPress = async () => {
+    const { bossName, difficulty, selectedGroupId, visGroups, playheadMs } =
+      useEditorStore.getState();
+    if (bossName === "" || difficulty === "") {
+      addToast({
+        title: "Error",
+        description: "Select an encounter before adding a spell.",
+        color: "danger",
+      });
+      return;
+    }
+    const group = visGroups.find((g) => g.id === selectedGroupId);
+    if (!group || group.kind !== "player" || group.playerId === undefined) {
+      addToast({
+        title: "Error",
+        description: "Click a player row in the timeline first.",
+        color: "danger",
+      });
+      return;
+    }
+    if (!isSpellAllowedForClass(spell_class_name, group.playerClass)) {
+      addToast({
+        title: "Error",
+        description: `${spell_name} is a ${spell_class_name} spell; the selected row is a ${group.playerClass}.`,
+        color: "danger",
+      });
+      return;
+    }
+    try {
+      const keyframeGroupId = await addPlayerSpellCast(
+        group.playerId,
+        spell_id,
+        playheadMs,
+      );
+      if (keyframeGroupId < 0) {
+        addToast({
+          title: "Error",
+          description: "Unable to add spell cast",
+          color: "danger",
+        });
+        return;
+      }
+      addVisItem(
+        castToItem(group, {
+          keyframe_group_id: keyframeGroupId,
+          spell_id,
+          spell_name,
+          spell_icon,
+          start_cast: playheadMs / FRAME_RATE,
+          spell_duration,
+        }),
+      );
+    } catch (error) {
+      console.error("Error adding spell cast:", error);
+    }
+  };
 
   var spell_cool_down_;
   if (spell_cool_down < 60) {
@@ -75,7 +147,6 @@ export default function PlayerSpellCard({
 
   return (
     <Card className="w-full min-w-0" shadow="sm" radius="sm">
-      {/* Icon + name take the width; the add button hugs the right edge. */}
       <CardHeader className="flex flex-row gap-2 px-3 pt-2 pb-1 items-center">
         <Link
           isExternal
@@ -98,19 +169,16 @@ export default function PlayerSpellCard({
         </Link>
 
         <Button
-          className={`shrink-0 h-6 w-6 min-w-6 ${isAdded ? "bg-transparent" : ""}`}
+          className="shrink-0 h-6 w-6 min-w-6"
           isIconOnly
           color="primary"
           radius="full"
           size="sm"
-          variant={isAdded ? "bordered" : "solid"}
+          variant="solid"
+          aria-label={`Add ${spell_name} to the selected row`}
           onPress={playerSpellAddButtonOnPress}
         >
-          {isAdded ? (
-            <MinusIcon className="w-4 h-4" />
-          ) : (
-            <PlusIcon className="w-4 h-4" />
-          )}
+          <PlusIcon className="w-4 h-4" />
         </Button>
       </CardHeader>
       <CardBody className="px-3 pt-0 pb-2 flex flex-row flex-wrap gap-x-3 gap-y-1 items-center text-xs text-default-400">
@@ -147,8 +215,6 @@ export default function PlayerSpellCard({
   );
 }
 
-// ---- Chip-filtered spell grid ---------------------------------------------
-
 interface SpellFilterGroup<T> {
   key: string;
   label: string;
@@ -163,8 +229,6 @@ interface SpellFilterGridProps<T> {
   renderItem: (item: T) => React.ReactNode;
 }
 
-// A row of toggle chips (one per group) over a grid of spell cards.
-// Multiple chips can be active; with none active every group is shown.
 function SpellFilterGrid<T>({
   groups,
   itemKey,
@@ -216,7 +280,6 @@ function SpellFilterGrid<T>({
         })}
       </div>
 
-      {/* Three columns of the panel width, never narrower than 150px. */}
       <div className="grid gap-1 grid-cols-[repeat(auto-fill,minmax(max(150px,30%),1fr))]">
         {visible.flatMap((group) =>
           group.items.map((item) => (
@@ -236,6 +299,7 @@ type PlayerSpellEntry = { spell: PlayerSpell; specIcon: string | undefined };
 const renderPlayerSpell = ({ spell, specIcon }: PlayerSpellEntry) => (
   <PlayerSpellCard
     spell_name={spell.name}
+    spell_class_name={spell.class_name}
     spell_type={spell.spell_type}
     spell_cool_down={spell.cool_down}
     spell_duration={spell.duration}
@@ -284,27 +348,33 @@ export const PlayerSpellTabPanel = ({
 interface PlayerSpellBySpellTypePanelProps {
   spellsByType: [string, PlayerSpell[]][];
   classSpecIconMap_: PlayerClassSpecIconMap;
+  // Class of the selected timeline row; restricts the list when set.
+  rowClass?: string;
 }
 
-// One chip per spell type across all classes.
+// One chip per spell type across all classes (or just the selected row's
+// class plus Generic when a class row is selected).
 export const PlayerSpellBySpellTypePanel = ({
   spellsByType,
   classSpecIconMap_,
+  rowClass,
 }: PlayerSpellBySpellTypePanelProps) => {
-  const groups: SpellFilterGroup<PlayerSpellEntry>[] = spellsByType.map(
-    ([spellType, spells]) => ({
+  const groups: SpellFilterGroup<PlayerSpellEntry>[] = spellsByType
+    .map(([spellType, spells]) => ({
       key: spellType,
       label: spellType,
-      items: spells.map((spell) => ({
-        spell,
-        specIcon: getClassSpecIcon(
-          spell.class_name,
-          spell.spec_name,
-          classSpecIconMap_,
-        ),
-      })),
-    }),
-  );
+      items: spells
+        .filter((spell) => isSpellAllowedForClass(spell.class_name, rowClass))
+        .map((spell) => ({
+          spell,
+          specIcon: getClassSpecIcon(
+            spell.class_name,
+            spell.spec_name,
+            classSpecIconMap_,
+          ),
+        })),
+    }))
+    .filter((group) => group.items.length > 0);
   return (
     <SpellFilterGrid
       groups={groups}
@@ -321,6 +391,15 @@ export const PlayerSpellSelection = () => {
       setClassSpecIconMap: state.setClassSpecIconMap,
     })),
   );
+  // Class of the selected timeline row; undefined for no row or a Generic
+  // row, both of which leave every class available.
+  const rowClass = useEditorStore((state) => {
+    const cls = state.visGroups.find(
+      (g) => g.id === state.selectedGroupId,
+    )?.playerClass;
+    return cls === GENERIC_CLASS ? undefined : cls;
+  });
+  const [selectedTab, setSelectedTab] = useState<string>("spellByType");
 
   var [playerSpellsBySpellType, setPlayerSpellsBySpellType] = useState<
     [string, PlayerSpell[]][]
@@ -383,6 +462,23 @@ export const PlayerSpellSelection = () => {
     loadData();
   }, []);
 
+  const orderedClassSpecs = [
+    ...playerSpellsByClassSpec.filter((c) => c.class_name === GENERIC_CLASS),
+    ...playerSpellsByClassSpec.filter((c) => c.class_name !== GENERIC_CLASS),
+  ];
+
+  // With a class row selected only that class (and Generic) stays enabled.
+  const disabledKeys = rowClass
+    ? orderedClassSpecs
+        .map((c) => c.class_name)
+        .filter((c) => !isSpellAllowedForClass(c, rowClass))
+    : [];
+  // If the open tab just became unavailable, jump to the row's class.
+  useEffect(() => {
+    if (rowClass && disabledKeys.includes(selectedTab))
+      setSelectedTab(rowClass);
+  }, [rowClass, selectedTab, disabledKeys]);
+
   return (
     <div className="h-full w-full p-0 overflow-auto">
       <Tabs
@@ -390,6 +486,9 @@ export const PlayerSpellSelection = () => {
         color="success"
         variant="solid"
         radius="full"
+        selectedKey={selectedTab}
+        onSelectionChange={(key) => setSelectedTab(String(key))}
+        disabledKeys={disabledKeys}
         classNames={{
           base: "w-full",
           tab: "h-10 w-10",
@@ -417,9 +516,10 @@ export const PlayerSpellSelection = () => {
           <PlayerSpellBySpellTypePanel
             spellsByType={playerSpellsBySpellType}
             classSpecIconMap_={classSpecIconMap}
+            rowClass={rowClass}
           />
         </Tab>
-        {playerSpellsByClassSpec.map((item) => {
+        {orderedClassSpecs.map((item) => {
           const classIcon = classSpecIconMap.get(item.class_name)!;
           return item.class_name === "General" ? (
             <></>

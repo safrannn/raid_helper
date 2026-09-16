@@ -1,0 +1,152 @@
+[
+  {
+    "name": "Fangs of the Coiled Altar",
+    "id": 1282487,
+    "icon": "www.wowhead.com/icon=136070",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Toxic Deluge",
+    "id": 1299960,
+    "icon": "www.wowhead.com/icon=136182",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Noxious Ground",
+    "id": 1283290,
+    "icon": "www.wowhead.com/icon=132108",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Axegrinder",
+    "id": 1301111,
+    "icon": "www.wowhead.com/icon=236303",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Sever",
+    "id": 1299680,
+    "icon": "www.wowhead.com/icon=132109",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Venomfang",
+    "id": 1306906,
+    "icon": "www.wowhead.com/icon=1373909",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Guillotine",
+    "id": 1283489,
+    "icon": "www.wowhead.com/icon=460959",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Dreadful Presence",
+    "id": 1288624,
+    "icon": "www.wowhead.com/icon=607865",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Dread Bolt",
+    "id": 1307184,
+    "icon": "www.wowhead.com/icon=136197",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Dreadmarch",
+    "id": 1285643,
+    "icon": "www.wowhead.com/icon=3163624",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Unassailable",
+    "id": 1285847,
+    "icon": "www.wowhead.com/icon=458229",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Unnerving Fixation",
+    "id": 1285911,
+    "icon": "www.wowhead.com/icon=841382",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Spiritcackle",
+    "id": 1286441,
+    "icon": "www.wowhead.com/icon=237557",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Retaliatory Malice",
+    "id": 1308323,
+    "icon": "www.wowhead.com/icon=615100",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Wail of Terror",
+    "id": 1286399,
+    "icon": "www.wowhead.com/icon=136131",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Gloombomb",
+    "id": 1310882,
+    "icon": "www.wowhead.com/icon=136201",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Soul Sever",
+    "id": 1286620,
+    "icon": "www.wowhead.com/icon=1354410",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Eternal Nightfall",
+    "id": 1286918,
+    "icon": "www.wowhead.com/icon=136223",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Deathguard",
+    "id": 1304028,
+    "icon": "www.wowhead.com/icon=5852173",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Soulbinding",
+    "id": 1304032,
+    "icon": "www.wowhead.com/icon=2576086",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Ghastly Regeneration",
+    "id": 1304033,
+    "icon": "www.wowhead.com/icon=537516",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Defilement of the Coiled Altar",
+    "id": 1298381,
+    "icon": "www.wowhead.com/icon=236302",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Grim Guillotine",
+    "id": 1299267,
+    "icon": "www.wowhead.com/icon=3997563",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Blighted Sever",
+    "id": 1307279,
+    "icon": "www.wowhead.com/icon=1388065",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Spirit Shield",
+    "id": 1309105,
+    "icon": "www.wowhead.com/icon=633004",
+    "spell_type": "Default"
+  }
+]

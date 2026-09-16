@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Soulcoil Ignition",
+    "id": 1293664,
+    "icon": "www.wowhead.com/icon=136213",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Ritual Burn",
+    "id": 1297624,
+    "icon": "www.wowhead.com/icon=5931164",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Possession Barrage",
+    "id": 1284103,
+    "icon": "www.wowhead.com/icon=136183",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Gravebound Advance",
+    "id": 1288792,
+    "icon": "www.wowhead.com/icon=2576096",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Ritual of Awakening",
+    "id": 1295124,
+    "icon": "www.wowhead.com/icon=1568673",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Soul Transfer",
+    "id": 1289902,
+    "icon": "www.wowhead.com/icon=3586267",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Hungering Pyre",
+    "id": 1289855,
+    "icon": "www.wowhead.com/icon=236220",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Invoke",
+    "id": 1299673,
+    "icon": "www.wowhead.com/icon=589118",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Soulcoiler's Curse",
+    "id": 1300238,
+    "icon": "www.wowhead.com/icon=7956734",
+    "spell_type": "Default"
+  }
+]

@@ -72,6 +72,12 @@ export interface RowGroup extends DataGroup {
   color: string;
   // Lookup key into the store's icon maps (boss name, or class__spec).
   iconKey: string;
+  // player_list.id, class and spec; only set on player rows.
+  playerId?: number;
+  playerClass?: string;
+  playerSpec?: string;
+  // Row position; assigned by the hook when syncing to vis (groupOrder).
+  order?: number;
 }
 
 const CLASS_COLORS: Record<string, string> = {
@@ -158,10 +164,39 @@ export const playerRowGroup = (
   className: "row-player",
   kind: "player",
   name,
-  subtitle: specName === "*" ? className : `${specName} ${className}`,
+  // "*" is the Generic placeholder; "" means a class was chosen without a spec.
+  subtitle:
+    specName === "*" || specName === ""
+      ? className
+      : `${specName} ${className}`,
   color: classColor(className),
-  iconKey: specName === "*" ? className : `${className}__${specName}`,
+  iconKey:
+    specName === "*" || specName === ""
+      ? className
+      : `${className}__${specName}`,
+  playerId: id,
+  playerClass: className,
+  playerSpec: specName,
 });
+
+// A player row after a rename / class change. The row id embeds the old
+// name, but nothing parses it and the cast items reference it, so keeping it
+// stable saves re-keying every item (a fight reload regenerates it anyway).
+export const updatedPlayerRowGroup = (
+  old: RowGroup,
+  name: string,
+  className: string,
+  specName: string,
+): RowGroup => ({
+  ...playerRowGroup(name, old.playerId ?? -1, className, specName),
+  id: old.id,
+  order: old.order,
+});
+
+// Item ids are `${groupId}__${keyframe_group_id}` (see castToItem); this is
+// the db key needed to remove a cast.
+export const keyframeGroupIdOf = (itemId: string) =>
+  Number(itemId.slice(itemId.lastIndexOf("__") + 2));
 
 // ---- Loaders ---------------------------------------------------------------
 
@@ -172,7 +207,7 @@ export interface LoadedRows {
 
 const fightUrl = (path: string, bossName: string, difficulty: string) => {
   const params = new URLSearchParams({ boss_name: bossName, difficulty });
-  return encodeURI(`http://localhost:3001/${path}?` + params.toString());
+  return `http://localhost:3001/${path}?` + params.toString();
 };
 
 export const loadBossRow = async (
@@ -229,4 +264,71 @@ export const loadPlayerRows = async (
     for (const cast of spell_casts) items.push(castToItem(group, cast));
   }
   return { groups, items };
+};
+
+// ---- Player spell casts ----------------------------------------------------
+
+const apiPost = async (path: string, params: Record<string, string>) =>
+  fetch(`http://localhost:3001/${path}?` + new URLSearchParams(params), {
+    method: "POST",
+  });
+
+// Persists a cast and returns its keyframe_group_id, or -1 on failure.
+export const addPlayerSpellCast = async (
+  playerId: number,
+  spellId: number,
+  startMs: number,
+): Promise<number> => {
+  const response = await apiPost("add_player_spell_cast", {
+    player_id: String(playerId),
+    spell_id: String(spellId),
+    start_time_in_sec: String(startMs / FRAME_RATE),
+  });
+  return response.json();
+};
+
+export const updatePlayerSpellCast = async (
+  keyframeGroupId: number,
+  startMs: number,
+) => {
+  try {
+    const response = await apiPost("update_player_spell_cast", {
+      keyframe_group_id: String(keyframeGroupId),
+      start_time_in_sec: String(startMs / FRAME_RATE),
+    });
+    const ok: boolean = await response.json();
+    if (!ok) console.error("Spell cast not found in db:", keyframeGroupId);
+  } catch (error) {
+    console.error("Error updating spell cast:", error);
+  }
+};
+
+// ---- Players ---------------------------------------------------------------
+
+// Same codes as add_player: -2 duplicate, -1 not found / failure, else the id.
+export const updatePlayer = async (
+  playerId: number,
+  name: string,
+  className: string,
+  specName: string,
+): Promise<number> => {
+  const response = await apiPost("update_player", {
+    player_id: String(playerId),
+    player_name: name,
+    player_class_name: className,
+    player_spec_name: specName,
+  });
+  return response.json();
+};
+
+export const removePlayerSpellCast = async (keyframeGroupId: number) => {
+  try {
+    const response = await apiPost("remove_player_spell_cast", {
+      keyframe_group_id: String(keyframeGroupId),
+    });
+    const ok: boolean = await response.json();
+    if (!ok) console.error("Spell cast not found in db:", keyframeGroupId);
+  } catch (error) {
+    console.error("Error removing spell cast:", error);
+  }
 };

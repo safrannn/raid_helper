@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Caustic Deluge",
+    "id": 1289192,
+    "icon": "www.wowhead.com/icon=5764918",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Envenomed",
+    "id": 1310360,
+    "icon": "www.wowhead.com/icon=5764920",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Eternal Venom",
+    "id": 1290336,
+    "icon": "www.wowhead.com/icon=136067",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Stone Breaker",
+    "id": 1288538,
+    "icon": "www.wowhead.com/icon=132318",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Venomous Emergence",
+    "id": 1291404,
+    "icon": "www.wowhead.com/icon=136070",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Corrosive Spit",
+    "id": 1291478,
+    "icon": "www.wowhead.com/icon=348565",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Coiling Ichor",
+    "id": 1290809,
+    "icon": "www.wowhead.com/icon=1035055",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Stir the Depths",
+    "id": 1290956,
+    "icon": "www.wowhead.com/icon=5764925",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Ravenous Feast",
+    "id": 1290516,
+    "icon": "www.wowhead.com/icon=236305",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Sanguine Storm",
+    "id": 1306872,
+    "icon": "www.wowhead.com/icon=1394887",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Vile Flood",
+    "id": 1294293,
+    "icon": "www.wowhead.com/icon=236271",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Blood Torrent",
+    "id": 1303230,
+    "icon": "www.wowhead.com/icon=1394889",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Barbed Bulwark",
+    "id": 1307363,
+    "icon": "www.wowhead.com/icon=1392546",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Rouse the Brood",
+    "id": 1308356,
+    "icon": "www.wowhead.com/icon=2399266",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Visceral Burst",
+    "id": 1308385,
+    "icon": "www.wowhead.com/icon=136133",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Clotted Bolt",
+    "id": 1295115,
+    "icon": "www.wowhead.com/icon=4554435",
+    "spell_type": "Default"
+  }
+]

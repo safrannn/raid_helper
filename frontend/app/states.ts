@@ -112,8 +112,19 @@ export interface VisTimelineState {
   visItems: SpellItem[];
   setVisModel: (groups: RowGroup[], items: SpellItem[]) => void;
   pushVisGroup: (group: RowGroup) => void;
+  updateVisGroup: (group: RowGroup) => void;
+  addVisItem: (item: SpellItem) => void;
+  removeVisItems: (ids: string[]) => void;
   // Written back when the user drags an item on the timeline.
   moveVisItem: (id: string, start: number, end?: number) => void;
+
+  // Row the spell panel's "+" button adds casts to (a player group id).
+  selectedGroupId: string | null;
+  setSelectedGroupId: (id: string | null) => void;
+
+  // Position of the red time indicator, in ms since pull.
+  playheadMs: number;
+  setPlayheadMs: (ms: number) => void;
 
   hiddenBossSpellIds: number[];
   setHiddenBossSpellIds: (ids: number[]) => void;
@@ -128,9 +139,21 @@ const createVisTimelineState: StateCreator<
 > = (set) => ({
   visGroups: [],
   visItems: [],
-  setVisModel: (visGroups, visItems) => set({ visGroups, visItems }),
+  setVisModel: (visGroups, visItems) =>
+    set({ visGroups, visItems, selectedGroupId: null }),
   pushVisGroup: (group) =>
     set((state) => ({ visGroups: [...state.visGroups, group] })),
+  updateVisGroup: (group) =>
+    set((state) => ({
+      visGroups: state.visGroups.map((g) => (g.id === group.id ? group : g)),
+    })),
+  addVisItem: (item) =>
+    set((state) => ({ visItems: [...state.visItems, item] })),
+  removeVisItems: (ids) =>
+    set((state) => {
+      const drop = new Set(ids);
+      return { visItems: state.visItems.filter((i) => !drop.has(i.id)) };
+    }),
   moveVisItem: (id, start, end) =>
     set((state) => {
       const idx = state.visItems.findIndex((i) => i.id === id);
@@ -141,6 +164,12 @@ const createVisTimelineState: StateCreator<
       visItems[idx] = { ...cur, start, end };
       return { visItems };
     }),
+
+  selectedGroupId: null,
+  setSelectedGroupId: (selectedGroupId) => set({ selectedGroupId }),
+
+  playheadMs: 0,
+  setPlayheadMs: (playheadMs) => set({ playheadMs }),
 
   hiddenBossSpellIds: [],
   setHiddenBossSpellIds: (hiddenBossSpellIds) => set({ hiddenBossSpellIds }),

@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Final Ascension",
+    "id": 1297075,
+    "icon": "www.wowhead.com/icon=3528311",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Creepy Flames",
+    "id": 1292796,
+    "icon": "www.wowhead.com/icon=136243",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Icebound Flames",
+    "id": 1286921,
+    "icon": "www.wowhead.com/icon=236217",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Blink Nova",
+    "id": 1296025,
+    "icon": "www.wowhead.com/icon=135736",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Shell Spin",
+    "id": 1296061,
+    "icon": "www.wowhead.com/icon=6361206",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Throw Junk",
+    "id": 1306137,
+    "icon": "www.wowhead.com/icon=132761",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Shredding Shards",
+    "id": 1295854,
+    "icon": "www.wowhead.com/icon=135855",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Evil Eyes",
+    "id": 1292388,
+    "icon": "www.wowhead.com/icon=136122",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Mor'zahi's Command",
+    "id": 1297024,
+    "icon": "www.wowhead.com/icon=7816851",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Mighty Thud",
+    "id": 1296092,
+    "icon": "www.wowhead.com/icon=1357795",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Relic Rupture",
+    "id": 1310027,
+    "icon": "www.wowhead.com/icon=2576084",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Dark Whispers",
+    "id": 1301667,
+    "icon": "www.wowhead.com/icon=7558869",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Frostfire Volley",
+    "id": 1295891,
+    "icon": "www.wowhead.com/icon=135810",
+    "spell_type": "Default"
+  }
+]

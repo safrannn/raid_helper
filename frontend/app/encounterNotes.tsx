@@ -31,9 +31,7 @@ export const EncounterNotes = () => {
       difficulty: difficulty,
     });
     const paramsString = newParams.toString();
-    var encodedUrl = encodeURI(
-      `http://localhost:3001/get_fight_note?` + paramsString,
-    );
+    var encodedUrl = `http://localhost:3001/get_fight_note?` + paramsString;
     fetch(encodedUrl)
       .then((response) => response.json())
       .then((data: string) => {
@@ -64,9 +62,7 @@ export const EncounterNotes = () => {
       note: note,
     });
     const paramsString = newParams.toString();
-    var encodedUrl = encodeURI(
-      `http://localhost:3001/update_fight_note?` + paramsString,
-    );
+    var encodedUrl = `http://localhost:3001/update_fight_note?` + paramsString;
     console.log("EncounterNotes.handleSubmit.encodedUrl", {
       bossName,
       encodedUrl,
@@ -93,13 +89,12 @@ export const EncounterNotes = () => {
         id="note"
         name="note"
         label="Note for this fight"
-        // Stretch to whatever height the parent gives us.
         disableAutosize
         classNames={{
           base: "flex-1 min-h-0",
-          inputWrapper: "h-full",
-          innerWrapper: "h-full",
-          input: "h-full resize-none",
+          inputWrapper: "!h-full",
+          innerWrapper: "flex-1 min-h-0",
+          input: "h-full self-stretch resize-none",
         }}
         isDisabled={isButtonsDisabled}
         value={note}

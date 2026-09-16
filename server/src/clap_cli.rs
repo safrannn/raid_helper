@@ -8,8 +8,10 @@ use crate::{
     timeline::get_timeline_boss_spells,
 };
 use clap::{Parser, Subcommand};
+use import::boss::{import_boss_spell_cast_file, import_boss_spell_file};
 use log::info;
 use rusqlite::Connection;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "server")]
@@ -60,6 +62,14 @@ pub enum Command {
         boss_name: String,
         difficulty: String,
         new_note: String,
+    },
+
+    ImportBossSpell {
+        path: PathBuf,
+    },
+
+    ImportBossSpellCast {
+        path: PathBuf,
     },
 }
 
@@ -121,5 +131,20 @@ pub fn test_cli() {
                 update_fight_note(&mut conn, boss_name, difficulty, new_note)
             );
         }
+        _ => {}
     };
+}
+
+pub fn import_boss() {
+    info!("import boss data");
+    let CargoCli::Command(cli) = CargoCli::parse();
+    let command = cli.command;
+    let mut conn = Connection::open("/Users/chengsu/Projects/raid_helper/database/raid_helper.db")
+        .expect("Failed to open database");
+
+    match command {
+        Command::ImportBossSpell { path } => import_boss_spell_file(&mut conn, &path),
+        Command::ImportBossSpellCast { path } => import_boss_spell_cast_file(&mut conn, &path),
+        _ => {}
+    }
 }

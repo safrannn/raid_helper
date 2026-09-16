@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Empowering Slam",
+    "id": 1284458,
+    "icon": "www.wowhead.com/icon=852525",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Bloodvenom Injection",
+    "id": 1284487,
+    "icon": "www.wowhead.com/icon=236304",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Venom Coagulation",
+    "id": 1284251,
+    "icon": "www.wowhead.com/icon=5764923",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Toxic Droplets",
+    "id": 1284434,
+    "icon": "www.wowhead.com/icon=5764924",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Unstable Miasma",
+    "id": 1288232,
+    "icon": "www.wowhead.com/icon=538039",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Contaminate",
+    "id": 1284257,
+    "icon": "www.wowhead.com/icon=458736",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Blighted Blood",
+    "id": 1284471,
+    "icon": "www.wowhead.com/icon=136168",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Vitriolic Stasis",
+    "id": 1284588,
+    "icon": "www.wowhead.com/icon=4631369",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Shifting Protovenom",
+    "id": 1296878,
+    "icon": "www.wowhead.com/icon=348565",
+    "spell_type": "Default"
+  },
+  {
+    "name": "Concealing Shadows",
+    "id": 1297724,
+    "icon": "www.wowhead.com/icon=1097742",
+    "spell_type": "Default"
+  }
+]
