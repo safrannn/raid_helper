@@ -411,7 +411,7 @@ export const PlayerSpellSelection = () => {
   const loadPlayerClassSpecIcon = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/get_player_class_spec_icon",
+        "/get_player_class_spec_icon",
       );
       const data: [string, string, string][] = await response.json();
       var newMap: PlayerClassSpecIconMap = new Map();
@@ -431,7 +431,7 @@ export const PlayerSpellSelection = () => {
   const loadPlayerSpellBySpellType = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/get_player_spells_by_spell_type",
+        "/get_player_spells_by_spell_type",
       );
       const data: [string, PlayerSpell[]][] = await response.json();
       // playerSpellsBySpellType = data;
@@ -444,7 +444,7 @@ export const PlayerSpellSelection = () => {
   const loadPlayerSpellByClassSpec = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/get_player_spells_by_class_spec",
+        "/get_player_spells_by_class_spec",
       );
       const data: PlayerSpellsByClass[] = await response.json();
       setPlayerSpellsByClassSpec(data);

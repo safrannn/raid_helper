@@ -180,7 +180,7 @@ const ClassSpecSelection = ({
     const loadClassNames = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/get_player_class_names",
+          "/get_player_class_names",
         );
         const data: string[] = await response.json();
         // Server returns names alphabetically; pin "Generic" to the top.
@@ -388,7 +388,7 @@ export function AddNewPlayerModal({
           difficulty: difficulty,
         });
         const paramsString = newParams.toString();
-        const encodedUrl = `http://localhost:3001/add_player?` + paramsString;
+        const encodedUrl = `/add_player?` + paramsString;
         const response = await fetch(encodedUrl);
         const data: number = await response.json();
         if (data === -2) {

@@ -31,7 +31,7 @@ export const EncounterNotes = () => {
       difficulty: difficulty,
     });
     const paramsString = newParams.toString();
-    var encodedUrl = `http://localhost:3001/get_fight_note?` + paramsString;
+    var encodedUrl = `/get_fight_note?` + paramsString;
     fetch(encodedUrl)
       .then((response) => response.json())
       .then((data: string) => {
@@ -62,7 +62,7 @@ export const EncounterNotes = () => {
       note: note,
     });
     const paramsString = newParams.toString();
-    var encodedUrl = `http://localhost:3001/update_fight_note?` + paramsString;
+    var encodedUrl = `/update_fight_note?` + paramsString;
     console.log("EncounterNotes.handleSubmit.encodedUrl", {
       bossName,
       encodedUrl,

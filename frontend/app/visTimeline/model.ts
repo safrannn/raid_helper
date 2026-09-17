@@ -207,7 +207,7 @@ export interface LoadedRows {
 
 const fightUrl = (path: string, bossName: string, difficulty: string) => {
   const params = new URLSearchParams({ boss_name: bossName, difficulty });
-  return `http://localhost:3001/${path}?` + params.toString();
+  return `/${path}?` + params.toString();
 };
 
 export const loadBossRow = async (
@@ -269,7 +269,7 @@ export const loadPlayerRows = async (
 // ---- Player spell casts ----------------------------------------------------
 
 const apiPost = async (path: string, params: Record<string, string>) =>
-  fetch(`http://localhost:3001/${path}?` + new URLSearchParams(params), {
+  fetch(`/${path}?` + new URLSearchParams(params), {
     method: "POST",
   });
 

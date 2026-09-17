@@ -1,11 +1,14 @@
 use axum::{
+    body::Body,
     extract::{Path, Query, State},
+    http::{header, StatusCode, Uri},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
-use axum::{http::StatusCode, response::IntoResponse};
 use clap::Parser;
 use rusqlite::Connection;
+use rust_embed::Embed;
 use serde::Deserialize;
 use server::{
     boss, notes, player,
@@ -13,6 +16,7 @@ use server::{
 };
 use std::{
     collections::HashSet,
+    path::PathBuf,
     sync::{Arc, Mutex},
 };
 use tower_http::cors::{Any, CorsLayer};
@@ -26,12 +30,34 @@ struct AppState {
     db: Arc<Mutex<Connection>>,
 }
 
+// frontend build target
+#[derive(Embed)]
+#[folder = "../frontend/out/"]
+struct FrontendAssets;
+
+const DB: &[u8] = include_bytes!("../../database/raid_helper.db");
+
 #[derive(Parser)]
 struct Args {
     #[arg(long, env, default_value = "0.0.0.0:3001")]
     addr: String,
-    #[arg(long, env, default_value = "../database/raid_helper.db")]
-    db: String,
+    #[arg(long, env)]
+    db: Option<PathBuf>,
+}
+
+fn resolve_db_path(arg: Option<PathBuf>) -> PathBuf {
+    let path = arg.unwrap_or_else(|| {
+        std::env::current_exe()
+            .expect("cannot locate executable")
+            .parent()
+            .expect("executable has no parent dir")
+            .join("raid_helper.db")
+    });
+    if !path.exists() {
+        std::fs::write(&path, DB).expect("Failed to write seed database");
+        log::info!("Created database at {}", path.display());
+    }
+    path
 }
 
 #[tokio::main]
@@ -46,7 +72,8 @@ async fn main() {
     // import::boss::import_boss_timeline(&mut conn);
 
     let args = Args::parse();
-    let conn: Connection = Connection::open(args.db).expect("Failed to open database");
+    let db_path = resolve_db_path(args.db);
+    let conn: Connection = Connection::open(&db_path).expect("Failed to open database");
     let state = AppState {
         db: Arc::new(Mutex::new(conn)),
     };
@@ -90,16 +117,38 @@ async fn main() {
             get(get_timeline_player_list_w_spell_casts),
         )
         .with_state(state)
-        .layer(CorsLayer::new().allow_origin(Any)); // Allow frontend access
-    let app = app.fallback(handler_404);
+        .layer(CorsLayer::new().allow_origin(Any))
+        .fallback(static_handler); // for frontend access
 
     // Set the address and start the server
-    let listener = tokio::net::TcpListener::bind(args.addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&args.addr).await.unwrap();
+    log::info!("Listening on http://{}", args.addr);
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn handler_404() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "nothing to see here")
+// async fn handler_404() -> impl IntoResponse {
+//     (StatusCode::NOT_FOUND, "nothing to see here")
+// }
+
+async fn static_handler(uri: Uri) -> Response {
+    let path = uri.path().trim_start_matches('/');
+    let path = if path.is_empty() { "index.html" } else { path };
+
+    let file = FrontendAssets::get(path)
+        .or_else(|| FrontendAssets::get(&format!("{path}.html")))
+        .or_else(|| FrontendAssets::get(&format!("{path}/index.html")));
+
+    match file {
+        Some(f) => {
+            let mime = f.metadata.mimetype();
+            (
+                [(header::CONTENT_TYPE, mime)],
+                Body::from(f.data.into_owned()),
+            )
+                .into_response()
+        }
+        None => (StatusCode::NOT_FOUND, "empty").into_response(),
+    }
 }
 
 // Handler for /list_raid

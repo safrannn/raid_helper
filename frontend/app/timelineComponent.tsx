@@ -80,7 +80,7 @@ const BossOnLoadListener = async ({
       difficulty: difficulty,
     });
     const paramsString = newParams.toString();
-    var encodedUrl = `http://localhost:3001/get_timeline_boss_spells?` + paramsString;
+    var encodedUrl = `/get_timeline_boss_spells?` + paramsString;
     const response = await fetch(encodedUrl);
     const data: TimelineBossSpellsReturn[] = await response.json();
 
@@ -139,7 +139,7 @@ const PlayerListOnloadListener = async ({
     });
     const paramsString = newParams.toString();
     var encodedUrl =
-      `http://localhost:3001/get_timeline_player_list_w_spell_casts?` +
+      `/get_timeline_player_list_w_spell_casts?` +
       paramsString;
     const response = await fetch(encodedUrl);
     const data: TimelinePlayerListWSpellCasts[] = await response.json();

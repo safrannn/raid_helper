@@ -52,7 +52,7 @@ export const BossSelection = () => {
   useEffect(() => {
     const loadRaidSelection = async () => {
       try {
-        const response = await fetch("http://localhost:3001/list_raid");
+        const response = await fetch("/list_raid");
         const data: Raid[] = await response.json();
         data.sort((a, b) => {
           const [aMajor, aMinor] = parsePatch(a.patch);
@@ -70,7 +70,7 @@ export const BossSelection = () => {
   useEffect(() => {
     const loadBossSelection = async () => {
       try {
-        const response = await fetch("http://localhost:3001/list_boss");
+        const response = await fetch("/list_boss");
         const data: Array<[string, Array<Boss>]> = await response.json();
         setSortedRaidList(data);
         var newBossMap: BossMap = new Map();
